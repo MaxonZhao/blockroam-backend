@@ -9,6 +9,7 @@ var UserSchema= new Schema(
         serviceProvider: {type: String, required: true, enum: ['Rogers', 'Bells', 'AT&T', 'Cricket', 'Fido', 'T-mobile'], default: 'Rogers'},
         voiceCallUsage: {type: Schema.Types.Decimal128}, // I think this might be a virtual
         smsUsage: {type: Number}, // this might be a virtual as well
+        internetUsage: {type: Schema.Types.Decimal128},
         serviceUsage: {type: Schema.Types.ObjectId, ref: 'serviceusage'}
     }
 )
@@ -19,4 +20,4 @@ UserSchema
     return '/catalog/user/' + this._id;
 })
 
-module.exports = mongoose.model('Book', BookSchema);
+module.exports = mongoose.model('user', UserSchema);
