@@ -11,10 +11,16 @@
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
+    "luxon": "^2.4.0",
     "mongoose": "^6.3.6",
     "morgan": "~1.9.1",
     "pug": "2.0.0-beta11",
     "random-mobile": "^1.0.2",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "@truffle/hdwallet-provider": "^2.0.10",
+    "fs-extra": "^10.1.0",
+    "path": "^0.12.7",
+    "solc": "^0.8.15",
+    "web3": "^1.7.4"
   }
 }
