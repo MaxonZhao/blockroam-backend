@@ -20,7 +20,7 @@ const ServiceUsageSchema = mongoose.model('service-usage');
 
 const NUMBER_OF_ENTRIES = 120;
 const SERVICE_USAGE_ENTRIES = 30;
-const serviceProviders = ['Fido', 'Bells', 'AT&T', 'T-mobile', 'Rogers', 'Cricket']
+const serviceProviders = ['Fido', 'Bell', 'AT&T', 'T-mobile', 'Rogers', 'Cricket']
 const serviceType = ['SMS', 'Voice Call', 'Internet']
 
 var userEntries = [];
@@ -85,7 +85,7 @@ function populateImsiArray(callback) {
 function createUsers(cb) {
     var fs = [];
     for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
-        const randomInt = RandomUtils.getRandomInt(serviceType.length);
+        const randomInt = RandomUtils.getRandomInt(serviceProviders.length);
         const randomImsi = randomImsiArray[i];
         const randomNumber = randomMobile({formatted: true});
         const randomServiceProvider = serviceProviders[randomInt]; 

@@ -1,7 +1,9 @@
-import web3 from './web3'
-import RoamingDataManagement from './build/RoamingDataManagement.json';
+const web3 = require('./web3')
+const RoamingDataManagement = require('./build/RoamingDataManagement.json');
 
 const instance = new web3.eth.Contract(
-    JSON.parse(RoamingDataManagement.interface),
-    '0xF115581306e66f2932aC3077BC8E16777b330a5E  ' // change this after the contract has been deployed
+    RoamingDataManagement.abi,
+    '0x8D2d84E3cC34122596B8E988B28DD55c29e3a97e'
 )
+
+module.exports = instance;
