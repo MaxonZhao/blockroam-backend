@@ -1,3 +1,4 @@
+const async = require('async');
 const assert = require('assert')
 const ganache = require('ganache-cli');
 const Web3 = require('web3')
@@ -23,7 +24,7 @@ const compiledRoamingDataManagementContract = require('../ethereum/build/Roaming
 let accounts
 let roamingDataManagement
 
-const serviceProviders = ["Rogers", "Fido", "T-mobile", "Cricket", "Bells", "AT&T"];
+const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
 
 
 
@@ -112,31 +113,58 @@ describe('Roaming Data Management System', () => {
                 .sort('imsi')
                 .exec();
 
-      
+
+            let uploadFuncs = [];
             for (let i = 0; i < users.length; ++i) {
                 let entry = users[i];
-                await roamingDataManagement.methods
-                    .uploadUserDataSummary(entry.imsi, entry.number,
-                        entry.serviceProvider, Math.round(entry.voiceCallUsage),
-                        Math.round(entry.internetUsage), entry.smsUsage)
-                    .send({
-                        from: serviceProviderAddresses[1],   // Fido, fido is the visiting operator
-                        gas: '1000000'
-                    })
+                // await roamingDataManagement.methods
+                //     .uploadUserDataSummary(entry.imsi, entry.number,
+                //         entry.serviceProvider, Math.round(entry.voiceCallUsage),
+                //         Math.round(entry.internetUsage), entry.smsUsage)
+                //     .send({
+                //         from: serviceProviderAddresses[1],   // Fido, fido is the visiting operator
+                //         gas: '1000000'
+                //     })
+
+                const f = async () => {
+                    await roamingDataManagement.methods
+                        .uploadUserDataSummary(entry.imsi, entry.number,
+                            entry.serviceProvider, Math.round(entry.voiceCallUsage),
+                            Math.round(entry.internetUsage), entry.smsUsage)
+                        .send({
+                            from: serviceProviderAddresses[2],   // Fido, fido is the visiting operator
+                            gas: '1000000'
+                        })
+                }
+                uploadFuncs.push(f);
             }
 
-            
+            // console.log(uploadFuncs)
+            let uploadingFinished = false;
+            await async.parallel(uploadFuncs, async function (err, results) {
+                if (err) console.log(err);
+                else {
+                    console.log("uploading user data as Fido summary done!")
+                }
+                // uploadingFinished = true;
+                // console.log('\n\n\n \t uploading data as Fido done!');
+                console.log('\n \t fetching data as Rogers!\n\n');
+                const res = await roamingDataManagement.methods
+                    // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
+                    .fetchUserDataSummary("T-Mobile")
+                    // .userTable(accounts[0], 0)
+                    .call({ from: serviceProviderAddresses[0] });
+                console.log('\n\n\n \t fetching data as Rogers done!');
+                console.log(res[0].length);
+                console.log(res[1].length);
+                console.log(res)
+            })
 
 
-            console.log('\n\n\n \t uploading data as Fido done!');
-            console.log('\n \t fetching data as Rogers!\n\n');
-            const res = await roamingDataManagement.methods
-                // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
-                .fetchUserDataSummary("Fido")
-                // .userTable(accounts[0], 0)
-                .call({ from: serviceProviderAddresses[5] });
-            console.log('\n\n\n \t fetching data as AT&T done!');
-            console.log(res)
+
+            // while (uploadingFinished == false);
+
+
 
 
 

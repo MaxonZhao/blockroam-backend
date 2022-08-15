@@ -1,4 +1,4 @@
-class RandomUtils {
+export class RandomUtils {
     constructor() {}
     static getRandomInt(max) {
         return Math.floor(Math.random() * max)
@@ -13,4 +13,4 @@ class RandomUtils {
     }
 }
 
-module.exports = {RandomUtils}
+// module.exports = {RandomUtils}

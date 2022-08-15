@@ -1,6 +1,6 @@
 const keys = require('./config/keys');
 const randomMobile = require('random-mobile');
-const {RandomUtils} = require('./utils/util')
+const {RandomUtils} = require('./utils/util.mjs')
 const { v4: uuidv4, v4 } = require('uuid');
 const async = require('async')
 
@@ -20,7 +20,7 @@ const ServiceUsageSchema = mongoose.model('service-usage');
 
 const NUMBER_OF_ENTRIES = 120;
 const SERVICE_USAGE_ENTRIES = 30;
-const serviceProviders = ['Fido', 'Bell', 'AT&T', 'T-mobile', 'Rogers', 'Cricket']
+const serviceProviders = ['Fido', 'Bell', 'AT&T', 'T-Mobile', 'Rogers', 'Cricket']
 const serviceType = ['SMS', 'Voice Call', 'Internet']
 
 var userEntries = [];
@@ -122,55 +122,10 @@ function createServiceUsages(cb) {
             })
         }
     }
-    async.series(fs, cb);
+    async.parallel(fs, cb);
 }
 
 
-
-// const populationMethod = async () => {
-//     for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
-//         const id = uuidv4();
-//         const today = new Date(Date.now())
-//         let serviceTypeEntries = [];
-//         let startTimeEntries = [];
-//         let endTimeEntries = [];
-        
-//         for (var k = 0; k < SERVICE_USAGE_ENTRIES; ++k) {
-//             const randomInt = RandomUtils.getRandomInt(serviceType.length);
-//             const startDate = RandomUtils.getRandomDate(new Date(Date.now()), 
-//             new Date(today.getFullYear() + 1, today.getMonth() + 1, today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds()))
-    
-//             serviceTypeEntries.push(serviceType[randomInt]);
-//             startTimeEntries.push(startDate)
-//             endTimeEntries.push(RandomUtils.getRandomDate(startDate, 
-//             new Date(startDate.getFullYear() + 1, startDate.getMonth() + 1, startDate.getDate(), startDate.getHours(), startDate.getMinutes(), startDate.getSeconds())))
-//         }
-
-//         await new UserProfileSchema({
-//             _id: id,
-//             number: randomMobile({ formatted: true }),
-//             serviceProvider: serviceProviders[RandomUtils.getRandomInt(serviceProviders.length)],
-//             voiceCallUsage: RandomUtils.getRandomFloat(1000, 2),
-//             smsUsage: RandomUtils.getRandomInt(1000),
-//             internetUsage: RandomUtils.getRandomFloat(2000, 2),
-//             serviceUsageProfile: new ServiceUsageSchema({
-//                 _id: id,
-//                 serviceType: serviceTypeEntries,
-//                 startTime: startTimeEntries,
-//                 endTime: endTimeEntries
-//             }).save()
-//         }).save();
-//     }
-// }
-
-
-// populationMethod();
-
-
-// populateImsiArray();
-// createServiceUsages(() => {
-//     console.log('create service usage entries -----### job completed');
-// })
 async.series([
     populateImsiArray,
     createServiceUsages,
@@ -179,7 +134,7 @@ async.series([
 // Optional callback
 function(err, results) {
     if (err) {
-        console.log('FINAL ERR: ' + err);
+        console.log('FATAL ERR: ' + err);
     } 
     else {
         console.log('populate service usage entries ---- ### job done\n\n\n\n')

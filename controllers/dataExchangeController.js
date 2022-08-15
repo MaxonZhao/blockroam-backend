@@ -8,12 +8,12 @@ require('../models/user');
 var ServiceUsage = mongoose.model('service-usage');
 var User = mongoose.model('user')
 
-const serviceProviders = ["Rogers", "Fido", "T-mobile", "Cricket", "Bell", "AT&T"];
+const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
 const operatorIndexMap = 
 {
     "Rogers": 0,
     "Fido": 1,
-    "T-mobile": 2,
+    "T-Mobile": 2,
     "Cricket": 3,
     "Bell": 4,
     "AT&T": 5
@@ -27,10 +27,12 @@ exports.registerOperators = async function (req, res, next) {
     const accounts = await getAccount;
     const serviceProviderAddresses = accounts.slice(0, 6);
     console.log(serviceProviderAddresses);
-
+    let registerOpFuncs = [];
     for (let i = 0; i < serviceProviderAddresses.length; ++i) {
         let operatorAddr = serviceProviderAddresses[i];
-        await roamingDataManagementContract.methods
+
+        const f = async () => {
+            await roamingDataManagementContract.methods
             .registerRoamingOperator(operatorAddr, serviceProviders[i])
             .send({
                 from: serviceProviderAddresses[i],
@@ -42,10 +44,28 @@ exports.registerOperators = async function (req, res, next) {
                     console.log('***************ERROR********************\n\n\n')
                 }
             });
+        }
+
+        registerOpFuncs.push(f);
+        // await roamingDataManagementContract.methods
+        //     .registerRoamingOperator(operatorAddr, serviceProviders[i])
+        //     .send({
+        //         from: serviceProviderAddresses[i],
+        //         // gas: '100000'
+        //     }, (err, res) => {
+        //         if (err) {
+        //             console.log('***************ERROR********************\n\n\n')
+        //             console.log(err);
+        //             console.log('***************ERROR********************\n\n\n')
+        //         }
+        //     });
 
     }
 
-    return res.json('registering operators done ...!');
+    await async.parallel(registerOpFuncs, function (err, results) {
+        if (err) console.log(err);
+        else     return res.json('registering operators done ...!');
+    })
 }
 
 exports.uploadUserDataSummary = async function (req, res, next) {
@@ -53,6 +73,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     const accounts = await getAccount;
     const visitingOperator = req.params.visitingOperator
     console.log(visitingOperator)
+    console.log(accounts)
     const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
         .sort('imsi')
         .exec();
@@ -61,6 +82,8 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     let uploadFuncs = [];
     for (let i = 0; i < users.length; ++i) {
         let entry = users[i];
+        if (entry.serviceProvider === visitingOperator) continue;
+        // console.log(entry)
         // await roamingDataManagementContract.methods
         //     .uploadUserDataSummary(entry.imsi, entry.number,
         //         entry.serviceProvider, Math.round(entry.voiceCallUsage),
@@ -71,7 +94,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
         //     })
 
         const f = async () => {
-            roamingDataManagementContract.methods
+           await roamingDataManagementContract.methods
                 .uploadUserDataSummary(entry.imsi, entry.number,
                     entry.serviceProvider, Math.round(entry.voiceCallUsage),
                     Math.round(entry.internetUsage), entry.smsUsage)
@@ -81,12 +104,14 @@ exports.uploadUserDataSummary = async function (req, res, next) {
                 })
         }
         uploadFuncs.push(f);
-
     }
 
     await async.parallel(uploadFuncs, function (err, results) {
         if (err) console.log(err);
-        else return res.json("uploading user data summary done!")
+        else {
+            console.log(`uploading roaming data as ${visitingOperator} job done!`)
+            return res.json("uploading user data summary done!")
+        }
     })
 
     // return res.json("uploading user data summary ...");
@@ -106,10 +131,11 @@ exports.fetchUserDataSummary = async function (req, res, next) {
     console.log('\n\n\n\n');
     console.log(data[1])
 
+    console.log(data[0].length)
+    console.log(data[1].length)
+
     return res.json(
-    `fetching user data summary ... 
-    userList: ${data[0]} 
-    data: ${data[1]}`
+        data
     )
 }
 

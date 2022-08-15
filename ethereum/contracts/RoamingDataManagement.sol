@@ -54,6 +54,7 @@ contract RoamingDataManagement {
         mapping(string => mapping(address => UserDataSummary)) storage userToSummaryTable = dataSummaryTable[operatorsNameToAddr[serviceProvider]];
         if (!dataSummaryExists(imsi, serviceProvider)) {
             userTable[operatorsNameToAddr[serviceProvider]].push(imsi);
+            numOfUserDataEntries[operatorsNameToAddr[serviceProvider]][imsi]++;
         }
         
         mapping(address => UserDataSummary) storage usageSummaryTablePerVisitingOperator = userToSummaryTable[imsi];
@@ -63,7 +64,6 @@ contract RoamingDataManagement {
         usageSummaryTablePerVisitingOperator[visitingOperator].voiceCallUsage = voiceCallUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].internetUsage = internetUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].smsUsage = smsUsage;
-        numOfUserDataEntries[operatorsNameToAddr[serviceProvider]][imsi]++;
     }
 
     function dataSummaryExists(string memory imsi, string memory homeOperator) public view returns(bool) {
