@@ -13,6 +13,8 @@ contract RoamingDataManagement {
     mapping(address => string) public operatorsAddrToName;
     mapping(string => address) public operatorsNameToAddr;
 
+    uint public totalDeposit;
+    
     struct UserDataSummary {
         string imsi;
         string number;
@@ -33,7 +35,21 @@ contract RoamingDataManagement {
         
     }
 
-    function registerRoamingOperator(address operatorAddr, string memory operatorName) public {
+    function deposit() public payable
+    {
+        totalDeposit += msg.value;
+    }
+
+    receive() external payable {
+        require(msg.value >= 1 gwei);
+    }
+
+    function balance() external view returns(uint256)
+    {
+        return address(this).balance;
+    }
+
+    function registerRoamingOperator(address operatorAddr, string memory operatorName) public payable {
         // require(bytes(operatorsAddrToName[operatorAddr]).length == 0);
         // require(operatorsNameToAddr[operatorName] == address(0x00));
         if (bytes(operatorsAddrToName[operatorAddr]).length == 0 && operatorsNameToAddr[operatorName] == address(0x00)) {
@@ -41,6 +57,10 @@ contract RoamingDataManagement {
             operatorAddresses.push(operatorAddr);   
             operatorsNameToAddr[operatorName] = operatorAddr;
             operatorsAddrToName[operatorAddr] = operatorName;
+            // require(msg.value >= 1 gwei); 
+            
+            // receive();
+            // transfer(payable(address(this)), msg.value);
         }
     }
 
@@ -64,6 +84,9 @@ contract RoamingDataManagement {
         usageSummaryTablePerVisitingOperator[visitingOperator].voiceCallUsage = voiceCallUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].internetUsage = internetUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].smsUsage = smsUsage;
+
+        // upon transferring new data, pay the visiting operator
+        transfer(payable(visitingOperator), 1 gwei);
     }
 
     function dataSummaryExists(string memory imsi, string memory homeOperator) public view returns(bool) {
@@ -84,6 +107,12 @@ contract RoamingDataManagement {
 
         return (userTable[homeOperatorAddr], dataSummarries);
     }
+
+    // Function to transfer Ether from this contract to address from input
+    function transfer(address payable _to, uint _amount) public {
+        (bool success, ) = _to.call{value: _amount}("");
+        require(success, "Failed to send Ether");
+    } 
 }
 
 
