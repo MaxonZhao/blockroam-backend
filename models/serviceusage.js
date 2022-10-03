@@ -30,6 +30,12 @@ ServiceUsageSchema
 .get(function() {
     return this.endTime?
     DateTime.fromJSDate(this.endTime).toLocaleString(DateTime.DATE_MED) : '';
-}) 
+})
+
+// ServiceUsageSchema
+// .virtual('start_time')
+// .get(function() {
+//     return this.startTime;
+// })
 
 module.exports = mongoose.model('service-usage', ServiceUsageSchema);

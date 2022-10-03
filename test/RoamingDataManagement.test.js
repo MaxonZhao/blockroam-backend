@@ -23,7 +23,7 @@ const compiledRoamingDataManagementContract = require('../ethereum/build/Roaming
 
 let accounts
 let roamingDataManagement
-const contractAddress = '0xC1FC148dc910E835D2D0b5bfa6eD94533045309A'
+const contractAddress = '0x73d3fD7285813A36C1dAb7f7620a09eb09C3eFd0'
 
 const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
 
@@ -134,7 +134,7 @@ describe('Roaming Data Management System', () => {
     // })
 
 
-
+    const initialBalance = '100'
     describe('Initialization checks --> registration fees', () => {
         it('deploys a roaming data management contract', async () => {
             assert.ok(roamingDataManagement.options.address);
@@ -142,21 +142,13 @@ describe('Roaming Data Management System', () => {
         it('builds the operators mapping table', async () => {
             const serviceProviderAddresses = accounts.slice(0, 6);
             console.log(serviceProviderAddresses);
-            serviceProviderAddresses.map(async (operatorAddr, i) => {
-                
-                const send = await web3.eth.sendTransaction({
-                    from: serviceProviderAddresses[i],
-                    to: contractAddress,
-                    value: web3.utils.toWei('1', 'ether'),
-                });
-
-                // console.log(send)
-                
-
+            for (let i = 0; i < serviceProviderAddresses.length; ++i) {
+                const operatorAddr = serviceProviderAddresses[i]
                 await roamingDataManagement.methods
                     .registerRoamingOperator(operatorAddr, serviceProviders[i])
-                    .call({
+                    .send({
                         from: serviceProviderAddresses[i],
+                        value: web3.utils.toWei(initialBalance, 'wei'),
                         gas: '1000000'
                     }, (err, res) => {
                         if (err) {
@@ -193,7 +185,7 @@ describe('Roaming Data Management System', () => {
                 assert.equal(spa, spa_map);
 
                 if (i == serviceProviderAddresses.length - 1) console.log('test done!')
-            })
+            }
 
             console.log('checking the registration fee ---')
                 const res = await roamingDataManagement.methods
@@ -206,9 +198,77 @@ describe('Roaming Data Management System', () => {
                             console.log('***************ERROR********************\n\n\n')
                             console.log(err);
                             console.log('***************ERROR********************\n\n\n')
-                        } 
+                        } else {
+                            console.log(res)
+                        }
                     });
-            console.log(res);
+            assert.equal(res, 6 * initialBalance)
+            
+            const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
+                .sort('imsi')
+                .exec();
+            
+            // console.log(users);
+
+            let uploadFuncs = [];
+            for (let i = 0; i < users.length; ++i) {
+                let entry = users[i];
+                if (entry.serviceProvider == "Fido") continue;
+                const f = async () => {
+                    await roamingDataManagement.methods
+                        .uploadUserDataSummary(entry.imsi, entry.number,
+                            entry.serviceProvider, Math.round(entry.voiceCallUsage),
+                            Math.round(entry.internetUsage), entry.smsUsage)
+                        .send({
+                            from: serviceProviderAddresses[1],   // Fido, fido is the visiting operator
+                            gas: '1000000'
+                        })
+                }
+                uploadFuncs.push(f);
+            }
+
+            // console.log(uploadFuncs)
+            let uploadingFinished = false;
+            await async.parallel(uploadFuncs, async function (err, results) {
+                if (err) console.log(err);
+                else {
+                    console.log("uploading user data as Fido summary done!")
+                }
+                console.log('\n \t fetching data as Rogers!\n\n');
+                const res = await roamingDataManagement.methods
+                    // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
+                    .fetchUserDataSummary("Fido")
+                    // .userTable(accounts[0], 0)
+                    .call({ from: serviceProviderAddresses[0] });
+                console.log('\n\n\n \t fetching data as Rogers done!');
+                // console.log(res[0].length);
+                // console.log(res[1].length);
+                // console.log(res);
+
+                const amount = await roamingDataManagement.methods
+                    .bank(serviceProviderAddresses[1])
+                    .call({from: serviceProviderAddresses[0]});
+                
+                console.log()
+                console.log(amount);
+                assert.equal(amount, initialBalance + 15)
+            })
+            
+            console.log('printing out start time in for each different serviceType')
+            const voiceCallStartTime = await users[0].voiceCallStartTime;
+            const smsStartTime = await users[0].smsStartTime;
+            const internetStartTime = await users[0].internetStartTime;
+            const serviceStartTime = await users[0].serviceStartTime;
+            console.log(voiceCallStartTime);
+            console.log(smsStartTime);
+            console.log(internetStartTime);
+            console.log()
+            console.log('printing out start time of service')
+
+            console.log(serviceStartTime);
+
+            // console.log(t.getMilliSeconds());
+            // console.log(users[0].voiceCallStartTime);
         })
     })
 })

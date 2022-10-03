@@ -13,7 +13,7 @@ const web3 = new Web3(provider)
 
 const deploy = async () => {
     const accounts = await web3.eth.getAccounts();
-    const deploymentManager = accounts[0];
+    const deploymentManager = accounts[1];
     console.log('Attempting to deploy from account', deploymentManager);
     const result = await new web3.eth.Contract(compiledRoamingManagement.abi)
     .deploy({data: compiledRoamingManagement.evm.bytecode.object})

@@ -1,8 +1,9 @@
 var mongoose = require('mongoose');
 
 var Schema = mongoose.Schema;
+// const ServiceUsageSchema = mongoose.model('service-usage');
 
-var UserSchema= new Schema(
+var UserSchema = new Schema(
     {
         imsi: {type: String, required: true},
         number: {type: String, required: true},
@@ -11,6 +12,10 @@ var UserSchema= new Schema(
         voiceCallUsage: {type: Number}, // I think this might be a virtual
         smsUsage: {type: Number}, // this might be a virtual as well
         internetUsage: {type: Number},
+        serviceStartTime: {type: Date},
+        voiceCallStartTime: {type: Date},
+        smsStartTime: {type: Date},
+        internetStartTime: {type: Date},
         serviceUsage: [{type: Schema.Types.ObjectId, ref: 'service-usage'}]
     }
 )
@@ -32,6 +37,70 @@ UserSchema
 .get(function() {
     return new String(this.internetUsage) + ' MegaBytes'
 })
+
+// UserSchema
+// .virtual('serviceStartTime')
+// .get(async function() {
+//     const su = await ServiceUsageSchema.find({imsi: this.imsi})
+//     let earliestTimeMillis = su[0].startTime.valueOf();
+//     let earliestTime = su[0].startTime;
+//     for (let i = 0; i < su.length; ++i) {
+//         if (su[i].startTime.valueOf() < earliestTimeMillis) {
+//             earliestTimeMillis = su[i].startTime.valueOf();
+//             earliestTime = su[i].startTime;
+//         }
+//     }
+
+//     return earliestTime;
+// })
+
+// UserSchema
+// .virtual('voiceCallStartTime')
+// .get(async function() {
+//     const su = await ServiceUsageSchema.find({imsi: this.imsi, serviceType: 'Voice Call'})
+//     let earliestTimeMillis = su[0].startTime.valueOf();
+//     let earliestTime = su[0].startTime;
+//     for (let i = 0; i < su.length; ++i) {
+//         if (su[i].startTime.valueOf() < earliestTimeMillis) {
+//             earliestTimeMillis = su[i].startTime.valueOf();
+//             earliestTime = su[i].startTime;
+//         }
+//     }
+
+//     return earliestTime;
+// })
+
+// UserSchema
+// .virtual('smsStartTime')
+// .get(async function() {
+//     const su = await ServiceUsageSchema.find({imsi: this.imsi, serviceType: 'SMS'})
+//     let earliestTimeMillis = su[0].startTime.valueOf();
+//     let earliestTime = su[0].startTime;
+//     for (let i = 0; i < su.length; ++i) {
+//         if (su[i].startTime.valueOf() < earliestTimeMillis) {
+//             earliestTimeMillis = su[i].startTime.valueOf();
+//             earliestTime = su[i].startTime;
+//         }
+//     }
+
+//     return earliestTime;
+// })
+
+// UserSchema
+// .virtual('internetStartTime')
+// .get(async function() {
+//     const su = await ServiceUsageSchema.find({imsi: this.imsi, serviceType: 'Internet'})
+//     let earliestTimeMillis = su[0].startTime.valueOf();
+//     let earliestTime = su[0].startTime;
+//     for (let i = 0; i < su.length; ++i) {
+//         if (su[i].startTime.valueOf() < earliestTimeMillis) {
+//             earliestTimeMillis = su[i].startTime.valueOf();
+//             earliestTime = su[i].startTime;
+//         }
+//     }
+
+//     return earliestTime;
+// })
 
 
 

@@ -131,8 +131,8 @@ exports.fetchUserDataSummary = async function (req, res, next) {
     console.log('\n\n\n\n');
     console.log(data[1])
 
-    console.log(data[0].length)
-    console.log(data[1].length)
+    // console.log(data[0].length)
+    // console.log(data[1].length)
 
     return res.json(
         data

@@ -39,6 +39,9 @@ cli
 .argument("[numberOfUsers]", "the number of users that planning to populate")
 .argument("[numberOfDataRecords]", "the number of data records that planning to produce")
 .argument("[timeInterval]", "the time interval in ms to populate random roaming data to database")
+.argument("[year]", "the year to start poppulating roaming data from")
+.argument("[month]", "the month to start populating roaming data from")
+.argument("[date]", "the day of a month to start populating roaming data")
 .description("randomly populate roaming data records and upload them to Mongo Atlas")
 .action(populate)
 

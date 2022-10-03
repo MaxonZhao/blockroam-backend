@@ -12,6 +12,7 @@ contract RoamingDataManagement {
 
     mapping(address => string) public operatorsAddrToName;
     mapping(string => address) public operatorsNameToAddr;
+    
 
     uint public totalDeposit;
     
@@ -24,12 +25,22 @@ contract RoamingDataManagement {
         uint256 smsUsage;
     }
 
+    struct BillingRecord {
+        address payer;
+        address payee;
+        uint amount;
+        uint256 timestamp; // in ms
+    }
+
+    BillingRecord[] public billingHistory;
+
     // a mapping relationship between operator address and array of its users as imsi
     mapping(address => string[]) public userTable;
     // the first address is the home operator, the second string is the imsi while the third address is the address of the visiting operator
     // The UserDataSummary is the data usage summary consumed in the visiting network
     mapping(address => mapping(string => mapping(address => UserDataSummary))) public dataSummaryTable;
     mapping(address => mapping(string => uint)) numOfUserDataEntries;
+    mapping(address => uint256) public bank;
 
     constructor() {
         
@@ -53,14 +64,17 @@ contract RoamingDataManagement {
         // require(bytes(operatorsAddrToName[operatorAddr]).length == 0);
         // require(operatorsNameToAddr[operatorName] == address(0x00));
         if (bytes(operatorsAddrToName[operatorAddr]).length == 0 && operatorsNameToAddr[operatorName] == address(0x00)) {
+            require(msg.value >= 100 wei); 
             serviceProviders.push(operatorName);
             operatorAddresses.push(operatorAddr);   
             operatorsNameToAddr[operatorName] = operatorAddr;
             operatorsAddrToName[operatorAddr] = operatorName;
-            // require(msg.value >= 1 gwei); 
-            
-            // receive();
-            // transfer(payable(address(this)), msg.value);
+            bank[operatorAddr] += msg.value;
+            // BillingRecord br = BillingRecord({
+            //     payer: msg.sender,
+            //     payee: this,
+            //     amount: msg.value,
+            // })
         }
     }
 
@@ -70,6 +84,7 @@ contract RoamingDataManagement {
         address visitingOperator = msg.sender;
         require(bytes(operatorsAddrToName[visitingOperator]).length != 0);
         require(operatorsNameToAddr[serviceProvider] != address(0x0));
+        require(bank[operatorsNameToAddr[serviceProvider]] >= 1 wei);
 
         mapping(string => mapping(address => UserDataSummary)) storage userToSummaryTable = dataSummaryTable[operatorsNameToAddr[serviceProvider]];
         if (!dataSummaryExists(imsi, serviceProvider)) {
@@ -86,7 +101,10 @@ contract RoamingDataManagement {
         usageSummaryTablePerVisitingOperator[visitingOperator].smsUsage = smsUsage;
 
         // upon transferring new data, pay the visiting operator
-        transfer(payable(visitingOperator), 1 gwei);
+        bank[operatorsNameToAddr[serviceProvider]] -= 1 wei;
+        bank[visitingOperator] += 1 wei;
+        transfer(payable(visitingOperator), 1 wei);
+        // transfer(payable(visitingOperator), 1 gwei);
     }
 
     function dataSummaryExists(string memory imsi, string memory homeOperator) public view returns(bool) {

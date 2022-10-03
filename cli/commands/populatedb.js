@@ -5,13 +5,15 @@ import { RandomUtils } from '../../utils/util.mjs'
 import { v4 } from 'uuid';
 import async from 'async'
 import mongoose from 'mongoose';
+// import DateTime from 'luxon'
+
 
 import '../../models/user.js';
 import '../../models/serviceusage.js';
 
 
 
-export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
+export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, date) => {
     const mongoDB = keys.mongoURI;
 
     mongoose.connect(mongoDB, { useNewUrlParser: true });
@@ -29,9 +31,16 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
 
     var userEntries = [];
     var randomImsiArray = [];
-    var serviceUsageEntries = [];
+    // var serviceUsageEntries = [];
+    var serviceUsageEntries = {}; 
+    var startDates = {};
 
-    function userCreate(imsi, number, serviceProvider, voiceCallUsage, smsUsage, internetUsage, serviceUsage, cb) {
+    const today = new Date();
+    var startDate = new Date(year, month, date - 1, today.getHours(), today.getMinutes(), today.getSeconds(), today.getMilliseconds());
+
+    function userCreate(imsi, number, serviceProvider, voiceCallUsage, smsUsage, 
+        internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime, serviceUsage, cb) {
+
         let userDetail = {
             imsi: imsi,
             number: number,
@@ -39,6 +48,10 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             voiceCallUsage: voiceCallUsage,
             smsUsage: smsUsage,
             internetUsage: internetUsage,
+            serviceStartTime: serviceStartTime,
+            voiceCallStartTime: voiceCallStartTime,
+            smsStartTime: smsStartTime,
+            internetStartTime: internetStartTime,
             serviceUsage: serviceUsage
         }
 
@@ -55,6 +68,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             cb(null, user);
         });
     }
+     
 
     function serviceUsageCreate(imsi, serviceType, startTime, endTime, cb) {
         let serviceUsageDetail = {
@@ -72,7 +86,11 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
                 return;
             }
             // console.log('New ServiceUsage: ' + serviceUsageInstance);
-            serviceUsageEntries.push(serviceUsageInstance);
+            // serviceUsageEntries.push(serviceUsageInstance);
+            
+            if (serviceUsageEntries[imsi] == null) serviceUsageEntries[imsi] = [];
+            serviceUsageEntries[imsi].push(serviceUsageInstance);
+
             cb(null, serviceUsageInstance)
         })
     }
@@ -83,6 +101,14 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             randomImsiArray.push(v4());
         }
         callback(null, randomImsiArray);
+    }
+
+    function initializeStartDates(callback) {
+        for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
+            startDates[randomImsiArray[i]] = RandomUtils.getRandomDate(startDate,
+                    new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 3, startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()));
+        }
+        callback(null, startDates);
     }
 
 
@@ -96,11 +122,50 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             const randomVoiceCallUsage = RandomUtils.getRandomFloat(1000, 2);
             const randomSmsUsage = RandomUtils.getRandomInt(1000);
             const randomInternetUsage = RandomUtils.getRandomFloat(100000, 2);
-            const serviceUsage = serviceUsageEntries.slice(30 * i, 30 * (i + 1));
+            // const serviceUsage = serviceUsageEntries.slice(numberOfDataRecords * i, numberOfDataRecords * (i + 1));
+            const serviceUsages = serviceUsageEntries[randomImsi]; 
+
+            var voiceCallStartTime = 0;
+            var smsStartTime = 0;
+            var internetStartTime = 0;
+            var serviceStartTime = 0;
+            for (let i = 0; i < serviceUsages.length; ++i) {
+                const t = serviceUsages[i].startTime.valueOf();
+                if (serviceStartTime == 0 || t < serviceStartTime) serviceStartTime = t;
+                const st = serviceUsages[i].serviceType;
+                if (st == 'Voice Call') {
+                    if (voiceCallStartTime == 0 || t < voiceCallStartTime) voiceCallStartTime = t;
+                } else if (st == 'SMS') {
+                    if (smsStartTime == 0 || t < smsStartTime) smsStartTime= t;
+                } else {
+                    if (internetStartTime == 0 || t < internetStartTime) internetStartTime = t;
+                }
+            }
+            
+
+            
+            // console.log(`The service start time for user ${randomImsi} is ${new Date(serviceStartTime)}`)
+            // console.log(`The voice call service start time for user ${randomImsi} is ${new Date(voiceCallStartTime)}`)
+            // console.log(`The sms service start time for user ${randomImsi} is ${new Date(smsStartTime)}`)
+            // console.log(`The internet service start time for user ${randomImsi} is ${new Date(internetStartTime)}`)
+
+            // console.log(`The service start time for user ${randomImsi} is ${serviceStartTime}`)
+            // console.log(`The voice call service start time for user ${randomImsi} is ${voiceCallStartTime}`)
+            // console.log(`The sms service start time for user ${randomImsi} is ${smsStartTime}`)
+            // console.log(`The internet service start time for user ${randomImsi} is ${internetStartTime}`)
+            
+
+            // console.log(serviceUsages);
+            // console.log();
+            // console.log();
+
+            // console.log(serviceUsageEntries[randomImsi]);
 
 
             const f = function (callback) {
-                userCreate(randomImsi, randomNumber, randomServiceProvider, randomVoiceCallUsage, randomSmsUsage, randomInternetUsage, serviceUsage, callback)
+                userCreate(randomImsi, randomNumber, randomServiceProvider, randomVoiceCallUsage, randomSmsUsage, 
+                    randomInternetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime,
+                    serviceUsages, callback);
             }
             fs.push(f);
         }
@@ -115,12 +180,13 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             for (let j = 0; j < SERVICE_USAGE_ENTRIES; ++j) {
                 const randomImsi = randomImsiArray[i];
                 const randomServiceType = serviceType[RandomUtils.getRandomInt(serviceType.length)];
-                const today = new Date();
-                const randomStartDate = RandomUtils.getRandomDate(new Date(Date.now()),
-                    new Date(today.getFullYear() + 1, today.getMonth() + 1, today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds()))
+                
+                const randomStartDate = startDates[randomImsi];
+                
                 const randomEndDate = RandomUtils.getRandomDate(randomStartDate,
-                    new Date(randomStartDate.getFullYear() + 1, randomStartDate.getMonth() + 1, randomStartDate.getDate(), randomStartDate.getHours(), randomStartDate.getMinutes(), randomStartDate.getSeconds()));
-
+                    new Date(randomStartDate.getFullYear(), randomStartDate.getMonth(), randomStartDate.getDate() + 2, randomStartDate.getHours(), randomStartDate.getMinutes(), randomStartDate.getSeconds()));
+                
+                startDates[randomImsi] = randomEndDate;
                 fs.push(function (callback) {
                     serviceUsageCreate(randomImsi, randomServiceType, randomStartDate, randomEndDate, callback)
                 })
@@ -133,6 +199,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
     async function populateRandomDataRecords() {
         await async.series([
             populateImsiArray,
+            initializeStartDates,
             createServiceUsages,
             createUsers
         ],
@@ -152,6 +219,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval) => {
             });
         
     }
-
+    
+    populateRandomDataRecords();
     setInterval(populateRandomDataRecords, timeInterval)
 }

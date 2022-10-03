@@ -3,7 +3,7 @@ const RoamingManagement = require('./build/RoamingManagement.json');
 
 const instance = new web3.eth.Contract(
     JSON.parse(RoamingManagement.interface),
-    "0x09e6AaC20a847408fEf66D8704cf1d674d4B6161"
+    "0x38b22BA7a796b7BA2F6f5137ad29eC85377529B9"
 )
 
 module.exports = instance;
