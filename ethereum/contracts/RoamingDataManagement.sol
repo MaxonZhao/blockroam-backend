@@ -63,6 +63,8 @@ contract RoamingDataManagement {
     function registerRoamingOperator(address operatorAddr, string memory operatorName) public payable {
         // require(bytes(operatorsAddrToName[operatorAddr]).length == 0);
         // require(operatorsNameToAddr[operatorName] == address(0x00));
+        // DateTime dateTime = DateTime(0x92482Ba45A4D2186DafB486b322C6d0B88410FE7);
+
         if (bytes(operatorsAddrToName[operatorAddr]).length == 0 && operatorsNameToAddr[operatorName] == address(0x00)) {
             require(msg.value >= 100 wei); 
             serviceProviders.push(operatorName);
