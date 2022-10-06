@@ -254,18 +254,18 @@ describe('Roaming Data Management System', () => {
                 assert.equal(amount, initialBalance + 15)
             })
             
-            console.log('printing out start time in for each different serviceType')
-            const voiceCallStartTime = await users[0].voiceCallStartTime;
-            const smsStartTime = await users[0].smsStartTime;
-            const internetStartTime = await users[0].internetStartTime;
-            const serviceStartTime = await users[0].serviceStartTime;
-            console.log(voiceCallStartTime);
-            console.log(smsStartTime);
-            console.log(internetStartTime);
-            console.log()
-            console.log('printing out start time of service')
+            // console.log('printing out start time in for each different serviceType')
+            // const voiceCallStartTime = await users[0].voiceCallStartTime;
+            // const smsStartTime = await users[0].smsStartTime;
+            // const internetStartTime = await users[0].internetStartTime;
+            // const serviceStartTime = await users[0].serviceStartTime;
+            // console.log(voiceCallStartTime);
+            // console.log(smsStartTime);
+            // console.log(internetStartTime);
+            // console.log()
+            // console.log('printing out start time of service')
 
-            console.log(serviceStartTime);
+            // console.log(serviceStartTime);
 
             // console.log(t.getMilliSeconds());
             // console.log(users[0].voiceCallStartTime);

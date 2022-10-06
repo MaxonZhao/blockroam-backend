@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 
 import '../../models/user.js';
 import '../../models/serviceusage.js';
+import { utils } from 'mocha';
 
 
 
@@ -36,7 +37,9 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     var startDates = {};
 
     const today = new Date();
-    var startDate = new Date(year, month, date - 1, today.getHours(), today.getMinutes(), today.getSeconds(), today.getMilliseconds());
+    // var startDate = new Date(year, month, date - 1, today.getHours(), today.getMinutes(), today.getSeconds(), today.getMilliseconds());
+    var startDate = new Date(year, month - 1, date);
+
 
     function userCreate(imsi, number, serviceProvider, voiceCallUsage, smsUsage, 
         internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime, serviceUsage, cb) {
@@ -70,12 +73,12 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     }
      
 
-    function serviceUsageCreate(imsi, serviceType, startTime, endTime, cb) {
+    function serviceUsageCreate(imsi, serviceType, date, usage, cb) {
         let serviceUsageDetail = {
             imsi: imsi,
             serviceType: serviceType,
-            startTime: startTime,
-            endTime: endTime
+            usage: usage,
+            date: date
         }
 
         var serviceUsageInstance = new ServiceUsageSchema(serviceUsageDetail);
@@ -105,8 +108,12 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
 
     function initializeStartDates(callback) {
         for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
-            startDates[randomImsiArray[i]] = RandomUtils.getRandomDate(startDate,
-                    new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 3, startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()));
+            // startDates[randomImsiArray[i]] = RandomUtils.getRandomDate(startDate,
+            //         // new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 3, startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()));
+            //         new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1));
+
+            startDates[randomImsiArray[i]] = startDate;
+
         }
         callback(null, startDates);
     }
@@ -130,7 +137,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             var internetStartTime = 0;
             var serviceStartTime = 0;
             for (let i = 0; i < serviceUsages.length; ++i) {
-                const t = serviceUsages[i].startTime.valueOf();
+                const t = serviceUsages[i].date.valueOf();
                 if (serviceStartTime == 0 || t < serviceStartTime) serviceStartTime = t;
                 const st = serviceUsages[i].serviceType;
                 if (st == 'Voice Call') {
@@ -177,19 +184,33 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         // console.log('in createServi Usage')
         var fs = [];
         for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
+            console.log(`printing stats user with imsi: ${randomImsiArray[i]}`)
+
             for (let j = 0; j < SERVICE_USAGE_ENTRIES; ++j) {
-                const randomImsi = randomImsiArray[i];
-                const randomServiceType = serviceType[RandomUtils.getRandomInt(serviceType.length)];
-                
-                const randomStartDate = startDates[randomImsi];
-                
-                const randomEndDate = RandomUtils.getRandomDate(randomStartDate,
-                    new Date(randomStartDate.getFullYear(), randomStartDate.getMonth(), randomStartDate.getDate() + 2, randomStartDate.getHours(), randomStartDate.getMinutes(), randomStartDate.getSeconds()));
-                
-                startDates[randomImsi] = randomEndDate;
-                fs.push(function (callback) {
-                    serviceUsageCreate(randomImsi, randomServiceType, randomStartDate, randomEndDate, callback)
-                })
+                const imsi = randomImsiArray[i];
+                const date = startDates[imsi];
+                console.log(`the current start date is ${date}`)
+                console.log()
+                for (let k = 0; k < serviceType.length; ++k) {
+                    const st = serviceType[k];
+                    let randomUsage = 0;
+                    if (st == 'Voice Call') {
+                        randomUsage = RandomUtils.getRandomFloat(24, 2);
+                    } else if (st == 'SMS') {
+                        randomUsage = RandomUtils.getRandomInt(1000, 2);
+                    } else {
+                        randomUsage = RandomUtils.getRandomFloat(5 * 1024, 2); // number of GB
+                    }
+                    // const randomStartDate = startDates[randomImsi];
+                    
+                    // const randomEndDate = RandomUtils.getRandomDate(randomStartDate,
+                    //     new Date(randomStartDate.getFullYear(), randomStartDate.getMonth(), randomStartDate.getDate() + 2, randomStartDate.getHours(), randomStartDate.getMinutes(), randomStartDate.getSeconds()));
+                    fs.push(function (callback) {
+                        serviceUsageCreate(imsi, st, date, randomUsage, callback)
+                    })
+                }
+                startDates[imsi] = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
             }
         }
         async.parallel(fs, cb);

@@ -2,6 +2,10 @@ const async = require('async');
 const mongoose = require('mongoose');
 const roamingDataManagementContract = require('../ethereum/roamingDataManagement');
 const getAccount = require('../ethereum/accounts');
+const ganache = require('ganache-cli');
+const Web3 = require('web3')
+const web3 = new Web3(ganache.provider());
+
 
 require('../models/serviceusage');
 require('../models/user');
@@ -19,7 +23,6 @@ const operatorIndexMap =
     "AT&T": 5
 }
 
-const obj = { name: 'Tom', country: 'Chile' };
 
 
 exports.registerOperators = async function (req, res, next) {
@@ -30,13 +33,14 @@ exports.registerOperators = async function (req, res, next) {
     let registerOpFuncs = [];
     for (let i = 0; i < serviceProviderAddresses.length; ++i) {
         let operatorAddr = serviceProviderAddresses[i];
-
+        const initialBalance = '100'
         const f = async () => {
             await roamingDataManagementContract.methods
             .registerRoamingOperator(operatorAddr, serviceProviders[i])
             .send({
                 from: serviceProviderAddresses[i],
-                // gas: '100000'
+                value: web3.utils.toWei(initialBalance, 'wei'),
+                gas: '1000000'
             }, (err, res) => {
                 if (err) {
                     console.log('***************ERROR********************\n\n\n')
@@ -45,6 +49,23 @@ exports.registerOperators = async function (req, res, next) {
                 }
             });
         }
+
+        // for (let i = 0; i < serviceProviderAddresses.length; ++i) {
+        //     const operatorAddr = serviceProviderAddresses[i]
+        //     await roamingDataManagement.methods
+        //         .registerRoamingOperator(operatorAddr, serviceProviders[i])
+        //         .send({
+        //             from: serviceProviderAddresses[i],
+        //             value: web3.utils.toWei(initialBalance, 'wei'),
+        //             gas: '1000000'
+        //         }, (err, res) => {
+        //             if (err) {
+        //                 console.log('***************ERROR********************\n\n\n')
+        //                 console.log(err);
+        //                 console.log('***************ERROR********************\n\n\n')
+        //             }
+        //         });
+
 
         registerOpFuncs.push(f);
         // await roamingDataManagementContract.methods
