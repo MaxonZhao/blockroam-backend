@@ -95,7 +95,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     const visitingOperator = req.params.visitingOperator
     console.log(visitingOperator)
     console.log(accounts)
-    const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
+    const users = await User.find({}, )
         .sort('imsi')
         .exec();
 
@@ -114,11 +114,20 @@ exports.uploadUserDataSummary = async function (req, res, next) {
         //         gas: '1000000'
         //     })
 
+        // console.log(entry.serviceStartTime.getTime());
+        // console.log(entry.internetStartTime.getTime());
+        // console.log(entry.voiceCallStartTime.getTime());
+        // console.log(entry.smsStartTime.getTime());
+
+        // console.log(entry)
+
         const f = async () => {
            await roamingDataManagementContract.methods
                 .uploadUserDataSummary(entry.imsi, entry.number,
                     entry.serviceProvider, Math.round(entry.voiceCallUsage),
-                    Math.round(entry.internetUsage), entry.smsUsage)
+                    Math.round(entry.internetUsage), entry.smsUsage,
+                    entry.serviceStartTime.getTime(), entry.internetStartTime.getTime(), 
+                    entry.voiceCallStartTime.getTime(), entry.smsStartTime.getTime())
                 .send({
                     from: accounts[operatorIndexMap[visitingOperator]],   
                     gas: '1000000'

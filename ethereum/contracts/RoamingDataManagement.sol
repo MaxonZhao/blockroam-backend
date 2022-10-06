@@ -20,6 +20,10 @@ contract RoamingDataManagement {
         string imsi;
         string number;
         string serviceProvider;
+        uint256 serviceStartTime;
+        uint256 voiceCallStartTime;
+        uint256 smsStartTime;
+        uint256 internetStartTime;
         uint256 voiceCallUsage;
         uint256 internetUsage;
         uint256 smsUsage;
@@ -81,7 +85,8 @@ contract RoamingDataManagement {
     }
 
     function uploadUserDataSummary(string memory imsi, string memory number, string memory serviceProvider, 
-    uint256 voiceCallUsage, uint256 internetUsage, uint256 smsUsage) public {
+    uint256 voiceCallUsage, uint256 internetUsage, uint256 smsUsage, uint256 serviceStartTime,
+    uint256 internetStartTime, uint256 voiceCallStartTime, uint256 smsStartTime) public {
 
         address visitingOperator = msg.sender;
         require(bytes(operatorsAddrToName[visitingOperator]).length != 0);
@@ -101,6 +106,13 @@ contract RoamingDataManagement {
         usageSummaryTablePerVisitingOperator[visitingOperator].voiceCallUsage = voiceCallUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].internetUsage = internetUsage;
         usageSummaryTablePerVisitingOperator[visitingOperator].smsUsage = smsUsage;
+
+        usageSummaryTablePerVisitingOperator[visitingOperator].serviceStartTime = serviceStartTime;
+        usageSummaryTablePerVisitingOperator[visitingOperator].internetStartTime = internetStartTime;
+        usageSummaryTablePerVisitingOperator[visitingOperator].voiceCallStartTime = voiceCallStartTime;
+        usageSummaryTablePerVisitingOperator[visitingOperator].smsStartTime = smsStartTime;
+
+
 
         // upon transferring new data, pay the visiting operator
         bank[operatorsNameToAddr[serviceProvider]] -= 1 wei;
