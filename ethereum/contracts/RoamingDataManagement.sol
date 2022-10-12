@@ -76,11 +76,14 @@ contract RoamingDataManagement {
             operatorsNameToAddr[operatorName] = operatorAddr;
             operatorsAddrToName[operatorAddr] = operatorName;
             bank[operatorAddr] += msg.value;
-            // BillingRecord br = BillingRecord({
+            // BillingRecord memory br = BillingRecord({
             //     payer: msg.sender,
-            //     payee: this,
+            //     payee: address(this),
             //     amount: msg.value,
-            // })
+            //     timestamp: currentTimeStamp
+            // });
+
+            // billingHistory.push(br);
         }
     }
 

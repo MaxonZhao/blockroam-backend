@@ -10,7 +10,6 @@ import mongoose from 'mongoose';
 
 import '../../models/user.js';
 import '../../models/serviceusage.js';
-import { utils } from 'mocha';
 
 
 
@@ -35,6 +34,12 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     // var serviceUsageEntries = [];
     var serviceUsageEntries = {}; 
     var startDates = {};
+    var users = 0;
+
+    // var voiceCallUsage = 0;
+    // var smsUsage = 0;
+    // var internetUsage = 0;
+    var userDataSummaryTable = {};
 
     const today = new Date();
     // var startDate = new Date(year, month, date - 1, today.getHours(), today.getMinutes(), today.getSeconds(), today.getMilliseconds());
@@ -71,6 +76,16 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             cb(null, user);
         });
     }
+
+    function update({imsi, voiceCallUsage, smsUsage, internetUsage}) {
+        UserSchema.findOneAndUpdate(
+            {"imsi": imsi},
+            {"smsUsage": smsUsage, "voiceCallUsage":voiceCallUsage, 
+            "internetUsage":internetUsage, "serviceUsage": serviceUsageEntries[imsi]})
+        .exec(function (err, list_users) {
+            if (err) { return; }
+        });
+    }
      
 
     function serviceUsageCreate(imsi, serviceType, date, usage, cb) {
@@ -99,14 +114,28 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     }
 
     function populateImsiArray(callback) {
-        // console.log('in populateImsiArray')
-        for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
-            randomImsiArray.push(v4());
+        if (users == numberOfUsers) {
+            callback(null, null);
+            return;
         }
-        callback(null, randomImsiArray);
+        for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
+            const r = v4();
+            randomImsiArray.push(r);
+            userDataSummaryTable[r] = {
+                voiceCallUsage: 0,
+                smsUsage: 0,
+                internetUsage: 0
+            };
+
+        }
+        callback(null, null);
     }
 
     function initializeStartDates(callback) {
+        if (users == numberOfUsers) {
+            callback(null, startDates);
+            return;
+        }
         for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
             // startDates[randomImsiArray[i]] = RandomUtils.getRandomDate(startDate,
             //         // new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 3, startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()));
@@ -120,15 +149,21 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
 
 
     function createUsers(cb) {
+        if (users == numberOfUsers) {
+            console.log("updating ...")
+            updateUserDataSummary();
+            cb(null, null);
+            return;
+        }
         var fs = [];
         for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
             const randomInt = RandomUtils.getRandomInt(serviceProviders.length);
             const randomImsi = randomImsiArray[i];
             const randomNumber = randomMobile({ formatted: true });
             const randomServiceProvider = serviceProviders[randomInt];
-            const randomVoiceCallUsage = RandomUtils.getRandomFloat(1000, 2);
-            const randomSmsUsage = RandomUtils.getRandomInt(1000);
-            const randomInternetUsage = RandomUtils.getRandomFloat(100000, 2);
+            // const randomVoiceCallUsage = RandomUtils.getRandomFloat(1000, 2);
+            // const randomSmsUsage = RandomUtils.getRandomInt(1000);
+            // const randomInternetUsage = RandomUtils.getRandomFloat(100000, 2);
             // const serviceUsage = serviceUsageEntries.slice(numberOfDataRecords * i, numberOfDataRecords * (i + 1));
             const serviceUsages = serviceUsageEntries[randomImsi]; 
 
@@ -136,66 +171,92 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             var smsStartTime = 0;
             var internetStartTime = 0;
             var serviceStartTime = 0;
+            
             for (let i = 0; i < serviceUsages.length; ++i) {
                 const t = serviceUsages[i].date.valueOf();
                 if (serviceStartTime == 0 || t < serviceStartTime) serviceStartTime = t;
                 const st = serviceUsages[i].serviceType;
+
                 if (st == 'Voice Call') {
+                    userDataSummaryTable[randomImsi].voiceCallUsage += Number(serviceUsages[i].usage);
+                    // voiceCallUsage += Number(serviceUsages[i].usage);
                     if (voiceCallStartTime == 0 || t < voiceCallStartTime) voiceCallStartTime = t;
                 } else if (st == 'SMS') {
+                    userDataSummaryTable[randomImsi].smsUsage += Number(serviceUsages[i].usage);
+                    // smsUsage += Number(serviceUsages[i].usage);
+                    // console.log(smsUsage)
+
                     if (smsStartTime == 0 || t < smsStartTime) smsStartTime= t;
                 } else {
+                    userDataSummaryTable[randomImsi].internetUsage += Number(serviceUsages[i].usage);
+                    // internetUsage += Number(serviceUsages[i].usage);
                     if (internetStartTime == 0 || t < internetStartTime) internetStartTime = t;
                 }
             }
-            
-
-            
-            // console.log(`The service start time for user ${randomImsi} is ${new Date(serviceStartTime)}`)
-            // console.log(`The voice call service start time for user ${randomImsi} is ${new Date(voiceCallStartTime)}`)
-            // console.log(`The sms service start time for user ${randomImsi} is ${new Date(smsStartTime)}`)
-            // console.log(`The internet service start time for user ${randomImsi} is ${new Date(internetStartTime)}`)
-
-            // console.log(`The service start time for user ${randomImsi} is ${serviceStartTime}`)
-            // console.log(`The voice call service start time for user ${randomImsi} is ${voiceCallStartTime}`)
-            // console.log(`The sms service start time for user ${randomImsi} is ${smsStartTime}`)
-            // console.log(`The internet service start time for user ${randomImsi} is ${internetStartTime}`)
-            
-
-            // console.log(serviceUsages);
-            // console.log();
-            // console.log();
-
-            // console.log(serviceUsageEntries[randomImsi]);
-
+            // console.log()
 
             const f = function (callback) {
-                userCreate(randomImsi, randomNumber, randomServiceProvider, randomVoiceCallUsage, randomSmsUsage, 
-                    randomInternetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime,
+                // userCreate(randomImsi, randomNumber, randomServiceProvider, voiceCallUsage, smsUsage, 
+                //     internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime,
+                //     serviceUsages, callback);
+                const voiceCallUsage = userDataSummaryTable[randomImsi].voiceCallUsage;
+                const internetUsage = userDataSummaryTable[randomImsi].internetUsage;
+                const smsUsage = userDataSummaryTable[randomImsi].smsUsage;
+                userCreate(randomImsi, randomNumber, randomServiceProvider, voiceCallUsage, smsUsage, 
+                    internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime,
                     serviceUsages, callback);
             }
             fs.push(f);
+            users++;
         }
 
         async.parallel(fs, cb);
+    }
+
+    function updateUserDataSummary() {
+        for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
+            const randomImsi = randomImsiArray[i];
+            const serviceUsages = serviceUsageEntries[randomImsi]; 
+
+            // console.log(serviceUsageEntries);
+            userDataSummaryTable[randomImsi].voiceCallUsage = 0;
+            userDataSummaryTable[randomImsi].smsUsage = 0;
+            userDataSummaryTable[randomImsi].internetUsage = 0;
+            
+            for (let i = 0; i < serviceUsages.length; ++i) {
+                const st = serviceUsages[i].serviceType;
+
+                if (st == 'Voice Call') {
+                    userDataSummaryTable[randomImsi].voiceCallUsage += Number(serviceUsages[i].usage);
+                } else if (st == 'SMS') {
+                    userDataSummaryTable[randomImsi].smsUsage += Number(serviceUsages[i].usage);
+                } else {
+                    userDataSummaryTable[randomImsi].internetUsage += Number(serviceUsages[i].usage);
+                }
+            }
+            const voiceCallUsage = userDataSummaryTable[randomImsi].voiceCallUsage;
+            const internetUsage = userDataSummaryTable[randomImsi].internetUsage;
+            const smsUsage = userDataSummaryTable[randomImsi].smsUsage;
+            update({imsi: randomImsi, voiceCallUsage: voiceCallUsage, smsUsage: smsUsage, internetUsage: internetUsage});
+        }
     }
 
     function createServiceUsages(cb) {
         // console.log('in createServi Usage')
         var fs = [];
         for (let i = 0; i < NUMBER_OF_ENTRIES; ++i) {
-            console.log(`printing stats user with imsi: ${randomImsiArray[i]}`)
+            // console.log(`printing stats user with imsi: ${randomImsiArray[i]}`)
 
             for (let j = 0; j < SERVICE_USAGE_ENTRIES; ++j) {
                 const imsi = randomImsiArray[i];
                 const date = startDates[imsi];
-                console.log(`the current start date is ${date}`)
-                console.log()
+                // console.log(`the current start date is ${date}`)
+                // console.log()
                 for (let k = 0; k < serviceType.length; ++k) {
                     const st = serviceType[k];
                     let randomUsage = 0;
                     if (st == 'Voice Call') {
-                        randomUsage = RandomUtils.getRandomFloat(24, 2);
+                        randomUsage = RandomUtils.getRandomFloat(1440, 2);
                     } else if (st == 'SMS') {
                         randomUsage = RandomUtils.getRandomInt(1000, 2);
                     } else {
@@ -215,14 +276,13 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         }
         async.parallel(fs, cb);
     }
-
-
+    
     async function populateRandomDataRecords() {
         await async.series([
             populateImsiArray,
             initializeStartDates,
             createServiceUsages,
-            createUsers
+            createUsers,
         ],
             // Optional callback
             function (err, results) {
@@ -243,4 +303,5 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     
     populateRandomDataRecords();
     setInterval(populateRandomDataRecords, timeInterval)
+    
 }
