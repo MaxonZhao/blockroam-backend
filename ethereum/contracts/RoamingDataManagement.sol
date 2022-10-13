@@ -64,7 +64,7 @@ contract RoamingDataManagement {
         return address(this).balance;
     }
 
-    function registerRoamingOperator(address operatorAddr, string memory operatorName) public payable {
+    function registerRoamingOperator(address operatorAddr, string memory operatorName, uint256 currentTimestamp) public payable {
         // require(bytes(operatorsAddrToName[operatorAddr]).length == 0);
         // require(operatorsNameToAddr[operatorName] == address(0x00));
         // DateTime dateTime = DateTime(0x92482Ba45A4D2186DafB486b322C6d0B88410FE7);
@@ -76,20 +76,20 @@ contract RoamingDataManagement {
             operatorsNameToAddr[operatorName] = operatorAddr;
             operatorsAddrToName[operatorAddr] = operatorName;
             bank[operatorAddr] += msg.value;
-            // BillingRecord memory br = BillingRecord({
-            //     payer: msg.sender,
-            //     payee: address(this),
-            //     amount: msg.value,
-            //     timestamp: currentTimeStamp
-            // });
+            BillingRecord memory br = BillingRecord({
+                payer: msg.sender,
+                payee: address(this),
+                amount: msg.value,
+                timestamp: currentTimestamp
+            });
 
-            // billingHistory.push(br);
+            billingHistory.push(br);
         }
     }
 
     function uploadUserDataSummary(string memory imsi, string memory number, string memory serviceProvider, 
     uint256 voiceCallUsage, uint256 internetUsage, uint256 smsUsage, uint256 serviceStartTime,
-    uint256 internetStartTime, uint256 voiceCallStartTime, uint256 smsStartTime) public {
+    uint256 internetStartTime, uint256 voiceCallStartTime, uint256 smsStartTime, uint256 currentTimestamp) public {
 
         address visitingOperator = msg.sender;
         require(bytes(operatorsAddrToName[visitingOperator]).length != 0);
@@ -121,6 +121,15 @@ contract RoamingDataManagement {
         bank[operatorsNameToAddr[serviceProvider]] -= 1 wei;
         bank[visitingOperator] += 1 wei;
         transfer(payable(visitingOperator), 1 wei);
+
+        BillingRecord memory br = BillingRecord({
+                payer: operatorsNameToAddr[serviceProvider],
+                payee: visitingOperator,
+                amount: 1 wei,
+                timestamp: currentTimestamp
+        });
+
+        billingHistory.push(br);
         // transfer(payable(visitingOperator), 1 gwei);
     }
 

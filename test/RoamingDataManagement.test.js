@@ -145,7 +145,7 @@ describe('Roaming Data Management System', () => {
             for (let i = 0; i < serviceProviderAddresses.length; ++i) {
                 const operatorAddr = serviceProviderAddresses[i]
                 await roamingDataManagement.methods
-                    .registerRoamingOperator(operatorAddr, serviceProviders[i])
+                    .registerRoamingOperator(operatorAddr, serviceProviders[i], new Date().valueOf())
                     .send({
                         from: serviceProviderAddresses[i],
                         value: web3.utils.toWei(initialBalance, 'wei'),
@@ -227,6 +227,22 @@ describe('Roaming Data Management System', () => {
                 uploadFuncs.push(f);
             }
 
+            // console.log('checking billing ---')
+            //     const res = await roamingDataManagement.methods
+            //         .balance()
+            //         .call({
+            //             from: serviceProviderAddresses[0],
+            //             gas: '1000000'
+            //         }, (err, res) => {
+            //             if (err) {
+            //                 console.log('***************ERROR********************\n\n\n')
+            //                 console.log(err);
+            //                 console.log('***************ERROR********************\n\n\n')
+            //             } else {
+            //                 console.log(res)
+            //             }
+            //         });
+ 
             // console.log(uploadFuncs)
             let uploadingFinished = false;
             await async.parallel(uploadFuncs, async function (err, results) {
@@ -253,22 +269,6 @@ describe('Roaming Data Management System', () => {
                 console.log(amount);
                 assert.equal(amount, initialBalance + 15)
             })
-            
-            // console.log('printing out start time in for each different serviceType')
-            // const voiceCallStartTime = await users[0].voiceCallStartTime;
-            // const smsStartTime = await users[0].smsStartTime;
-            // const internetStartTime = await users[0].internetStartTime;
-            // const serviceStartTime = await users[0].serviceStartTime;
-            // console.log(voiceCallStartTime);
-            // console.log(smsStartTime);
-            // console.log(internetStartTime);
-            // console.log()
-            // console.log('printing out start time of service')
-
-            // console.log(serviceStartTime);
-
-            // console.log(t.getMilliSeconds());
-            // console.log(users[0].voiceCallStartTime);
         })
     })
 })
