@@ -47,7 +47,8 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
 
 
     function userCreate(imsi, number, serviceProvider, voiceCallUsage, smsUsage, 
-        internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime, serviceUsage, cb) {
+        internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime, 
+        voiceCallDate, smsDate, internetDate, serviceUsage, cb) {
 
         let userDetail = {
             imsi: imsi,
@@ -60,6 +61,9 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             voiceCallStartTime: voiceCallStartTime,
             smsStartTime: smsStartTime,
             internetStartTime: internetStartTime,
+            voiceCallDate, 
+            smsDate,
+            internetDate,
             serviceUsage: serviceUsage
         }
 
@@ -77,11 +81,12 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         });
     }
 
-    function update({imsi, voiceCallUsage, smsUsage, internetUsage}) {
+    function update({imsi, voiceCallUsage, smsUsage, internetUsage, voiceCallDate, smsDate, internetDate}) {
         UserSchema.findOneAndUpdate(
             {"imsi": imsi},
             {"smsUsage": smsUsage, "voiceCallUsage":voiceCallUsage, 
-            "internetUsage":internetUsage, "serviceUsage": serviceUsageEntries[imsi]})
+            "internetUsage":internetUsage, "serviceUsage": serviceUsageEntries[imsi],
+            "voiceCallDate": voiceCallDate, "smsDate": smsDate, "internetDate": internetDate})
         .exec(function (err, list_users) {
             if (err) { return; }
         });
@@ -171,6 +176,9 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             var smsStartTime = 0;
             var internetStartTime = 0;
             var serviceStartTime = 0;
+            var voiceCallDate = 0;
+            var smsDate = 0;
+            var internetDate = 0;
             
             for (let i = 0; i < serviceUsages.length; ++i) {
                 const t = serviceUsages[i].date.valueOf();
@@ -181,16 +189,19 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
                     userDataSummaryTable[randomImsi].voiceCallUsage += Number(serviceUsages[i].usage);
                     // voiceCallUsage += Number(serviceUsages[i].usage);
                     if (voiceCallStartTime == 0 || t < voiceCallStartTime) voiceCallStartTime = t;
+                    if (t > voiceCallDate) voiceCallDate = t;
                 } else if (st == 'SMS') {
                     userDataSummaryTable[randomImsi].smsUsage += Number(serviceUsages[i].usage);
                     // smsUsage += Number(serviceUsages[i].usage);
                     // console.log(smsUsage)
 
                     if (smsStartTime == 0 || t < smsStartTime) smsStartTime= t;
+                    if (t > smsDate) smsDate = t;
                 } else {
                     userDataSummaryTable[randomImsi].internetUsage += Number(serviceUsages[i].usage);
                     // internetUsage += Number(serviceUsages[i].usage);
                     if (internetStartTime == 0 || t < internetStartTime) internetStartTime = t;
+                    if (t > internetDate) internetDate = t;
                 }
             }
             // console.log()
@@ -204,6 +215,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
                 const smsUsage = userDataSummaryTable[randomImsi].smsUsage;
                 userCreate(randomImsi, randomNumber, randomServiceProvider, voiceCallUsage, smsUsage, 
                     internetUsage, serviceStartTime, voiceCallStartTime, smsStartTime, internetStartTime,
+                    voiceCallDate, smsDate, internetDate,
                     serviceUsages, callback);
             }
             fs.push(f);
@@ -223,21 +235,29 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             userDataSummaryTable[randomImsi].smsUsage = 0;
             userDataSummaryTable[randomImsi].internetUsage = 0;
             
+            var voiceCallDate = 0;
+            var smsDate = 0;
+            var internetDate = 0;
             for (let i = 0; i < serviceUsages.length; ++i) {
                 const st = serviceUsages[i].serviceType;
+                const t = serviceUsages[i].date.valueOf();
 
                 if (st == 'Voice Call') {
+                    if (t > voiceCallDate) voiceCallDate = t;
                     userDataSummaryTable[randomImsi].voiceCallUsage += Number(serviceUsages[i].usage);
                 } else if (st == 'SMS') {
+                    if (t > smsDate) smsDate = t;
                     userDataSummaryTable[randomImsi].smsUsage += Number(serviceUsages[i].usage);
                 } else {
+                    if (t > internetDate) internetDate = t;
                     userDataSummaryTable[randomImsi].internetUsage += Number(serviceUsages[i].usage);
                 }
             }
             const voiceCallUsage = userDataSummaryTable[randomImsi].voiceCallUsage;
             const internetUsage = userDataSummaryTable[randomImsi].internetUsage;
             const smsUsage = userDataSummaryTable[randomImsi].smsUsage;
-            update({imsi: randomImsi, voiceCallUsage: voiceCallUsage, smsUsage: smsUsage, internetUsage: internetUsage});
+            update({imsi: randomImsi, voiceCallUsage: voiceCallUsage, smsUsage: smsUsage, internetUsage: internetUsage,
+            voiceCallDate: voiceCallDate, smsDate: smsDate, internetDate: internetDate});
         }
     }
 

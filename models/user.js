@@ -16,6 +16,9 @@ var UserSchema = new Schema(
         voiceCallStartTime: {type: Date},
         smsStartTime: {type: Date},
         internetStartTime: {type: Date},
+        voiceCallDate: {type: Date},
+        smsDate: {type: Date},
+        internetDate: {type: Date},
         serviceUsage: [{type: Schema.Types.ObjectId, ref: 'service-usage'}]
     }
 )
