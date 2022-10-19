@@ -17,6 +17,8 @@ router.get('/users/local/:service_provider', user_controller.fetch_local_user_li
 router.get('/upload-user-data-summary/:visitingOperator', data_exchange_controller.uploadUserDataSummary);
 router.get('/register-operators', data_exchange_controller.registerOperators);
 router.get('/fetch-user-summary/:homeOperator/:visitingOperator', data_exchange_controller.fetchUserDataSummary);
+router.get('/fetch-billing-history', data_exchange_controller.fetchBillingHistory);
+router.get('/balance', data_exchange_controller.checkAccountBalance);
 
 
 module.exports = router;

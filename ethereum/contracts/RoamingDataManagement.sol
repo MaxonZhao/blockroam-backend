@@ -32,6 +32,8 @@ contract RoamingDataManagement {
     struct BillingRecord {
         address payer;
         address payee;
+        string payerName;
+        string payeeName;
         uint amount;
         uint256 timestamp; // in ms
     }
@@ -79,6 +81,8 @@ contract RoamingDataManagement {
             BillingRecord memory br = BillingRecord({
                 payer: msg.sender,
                 payee: address(this),
+                payerName: operatorsAddrToName[msg.sender],
+                payeeName: "Bank",
                 amount: msg.value,
                 timestamp: currentTimestamp
             });
@@ -125,6 +129,8 @@ contract RoamingDataManagement {
         BillingRecord memory br = BillingRecord({
                 payer: operatorsNameToAddr[serviceProvider],
                 payee: visitingOperator,
+                payerName: serviceProvider,
+                payeeName: operatorsAddrToName[visitingOperator],
                 amount: 1 wei,
                 timestamp: currentTimestamp
         });
@@ -151,6 +157,10 @@ contract RoamingDataManagement {
 
         return (userTable[homeOperatorAddr], dataSummarries);
     }
+
+    function fetchBillingHistory() public view returns(BillingRecord[] memory) {
+        return billingHistory;
+    } 
 
     // Function to transfer Ether from this contract to address from input
     function transfer(address payable _to, uint _amount) public {

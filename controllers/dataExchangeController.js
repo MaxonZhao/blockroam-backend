@@ -13,7 +13,7 @@ var ServiceUsage = mongoose.model('service-usage');
 var User = mongoose.model('user')
 
 const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
-const operatorIndexMap = 
+const operatorIndexMap =
 {
     "Rogers": 0,
     "Fido": 1,
@@ -36,18 +36,18 @@ exports.registerOperators = async function (req, res, next) {
         const initialBalance = '100'
         const f = async () => {
             await roamingDataManagementContract.methods
-            .registerRoamingOperator(operatorAddr, serviceProviders[i])
-            .send({
-                from: serviceProviderAddresses[i],
-                value: web3.utils.toWei(initialBalance, 'wei'),
-                gas: '1000000'
-            }, (err, res) => {
-                if (err) {
-                    console.log('***************ERROR********************\n\n\n')
-                    console.log(err);
-                    console.log('***************ERROR********************\n\n\n')
-                }
-            });
+                .registerRoamingOperator(operatorAddr, serviceProviders[i], new Date().valueOf())
+                .send({
+                    from: serviceProviderAddresses[i],
+                    value: web3.utils.toWei(initialBalance, 'wei'),
+                    gas: '1000000'
+                }, (err, res) => {
+                    if (err) {
+                        console.log('***************ERROR********************\n\n\n')
+                        console.log(err);
+                        console.log('***************ERROR********************\n\n\n')
+                    }
+                });
         }
 
         // for (let i = 0; i < serviceProviderAddresses.length; ++i) {
@@ -85,7 +85,7 @@ exports.registerOperators = async function (req, res, next) {
 
     await async.parallel(registerOpFuncs, function (err, results) {
         if (err) console.log(err);
-        else     return res.json('registering operators done ...!');
+        else return res.json('registering operators done ...!');
     })
 }
 
@@ -95,7 +95,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     const visitingOperator = req.params.visitingOperator
     console.log(visitingOperator)
     console.log(accounts)
-    const users = await User.find({}, )
+    const users = await User.find({},)
         .sort('imsi')
         .exec();
 
@@ -122,14 +122,14 @@ exports.uploadUserDataSummary = async function (req, res, next) {
         // console.log(entry)
 
         const f = async () => {
-           await roamingDataManagementContract.methods
+            await roamingDataManagementContract.methods
                 .uploadUserDataSummary(entry.imsi, entry.number,
                     entry.serviceProvider, Math.round(entry.voiceCallUsage),
                     Math.round(entry.internetUsage), entry.smsUsage,
-                    entry.serviceStartTime.getTime(), entry.internetStartTime.getTime(), 
-                    entry.voiceCallStartTime.getTime(), entry.smsStartTime.getTime())
+                    entry.serviceStartTime.getTime(), entry.internetStartTime.getTime(),
+                    entry.voiceCallStartTime.getTime(), entry.smsStartTime.getTime(), new Date().valueOf())
                 .send({
-                    from: accounts[operatorIndexMap[visitingOperator]],   
+                    from: accounts[operatorIndexMap[visitingOperator]],
                     gas: '1000000'
                 })
         }
@@ -145,6 +145,55 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     })
 
     // return res.json("uploading user data summary ...");
+}
+
+exports.fetchBillingHistory = async function (req, res, next) {
+    const accounts = await getAccount;
+    // console.log(accounts);
+    await roamingDataManagementContract.methods
+        .fetchBillingHistory()
+        .call({
+            from: accounts[1],
+            gas: '1000000'
+        }, (err, result) => {
+            if (err) {
+                console.log('***************ERROR********************\n\n\n')
+                console.log(err);
+                console.log('***************ERROR********************\n\n\n')
+            } else {
+                // console.log(res)
+                // result.forEach((entry, index) => this[index][entry.length - 1] = new Date(entry[entry.length - 1]))
+                // console.log(result)
+                return res.json(result);
+            }
+        });
+}
+
+exports.checkAccountBalance = async function (req, res, next) {
+    const accounts = await getAccount;
+    // const operatorName = req.params.operatorName;
+    // const operatorAddr = serviceProviders[operatorIndexMap[operatorName]]; 
+
+    let acconutBalance = {};
+
+    for (let i = 0; i < serviceProviders.length; ++i) {
+        await roamingDataManagementContract.methods
+            .bank(accounts[i])
+            .call({
+                from: accounts[0],
+                gas: '1000000'
+            }, (err, result) => {
+                if (err) {
+                    console.log('***************ERROR********************\n\n\n')
+                    console.log(err);
+                    console.log('***************ERROR********************\n\n\n')
+                } else {
+                    acconutBalance[serviceProviders[i]] = result;
+                }
+            });
+    }
+
+    return res.json(acconutBalance);
 }
 
 

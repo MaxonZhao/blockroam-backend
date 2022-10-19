@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "dev": "nodemon --exec npm start",
     "test": "mocha --timeout 10000",
     "start": "node ./bin/www"
   },
@@ -21,6 +22,7 @@
     "mocha": "^10.0.0",
     "mongoose": "^6.3.6",
     "morgan": "~1.9.1",
+    "nodemon": "^2.0.20",
     "path": "^0.12.7",
     "pug": "2.0.0-beta11",
     "random-mobile": "^1.0.2",
