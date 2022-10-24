@@ -1,11 +1,17 @@
 const async = require('async');
 const mongoose = require('mongoose')
+const uuidv5 = require('uuid').v5;
 
 require('../models/serviceusage');
 require('../models/user');
-var ServiceUsage = mongoose.model('service-usage');
-var User = mongoose.model('user')
+require('../models/operator')
 
+let ServiceUsage = mongoose.model('service-usage');
+let User = mongoose.model('user');
+let OperatorSchema = mongoose.model('operator');
+
+const USER_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
+ 
 exports.index = function (req, res) {
     async.parallel({
         user_count: function (callback) {
@@ -18,6 +24,69 @@ exports.index = function (req, res) {
     }, function (err, results) {
         res.render('index', { title: 'blockroam backend', data: results, error: err })
     });
+}
+
+exports.login = function (req, res) {
+    const operatorName = req.body.username;
+    const password = req.body.password;
+
+    OperatorSchema.find({'operatorName': operatorName})
+        .exec(function(err, operators) {
+
+            if (err) {
+                res.status(400).json("unable to login: \n" + err);
+                return;
+            }
+            if (operators.length == 0) {
+                res.status(400).json("unable to login, user does not exist");
+                return
+            } else {
+                const operator = operators[0];
+                if (password === operator.password) {
+                    res.status(200).json("Login Successful!")
+                } else {
+                    res.status(403).json("Wrong password!")
+                }
+                return;
+            }
+        });
+}
+
+exports.register = function (req, res) {
+    // console.log(req.body);
+    const opSecretKey = uuidv5(req.body.username + req.body.password, USER_NAMESPACE)
+    // console.log(secretKey);
+    const op = {
+        operatorName: req.body.username,
+        password: req.body.password,
+        secretKey: opSecretKey
+    };
+
+    OperatorSchema.find({'operatorName': op.operatorName})
+        .exec(function(err, operators) {
+            console.log("-------------- registering --------------")
+            console.log(op.operatorName)
+            console.log(operators)
+            if (err) {
+                res.status(400).json("unable to register: \n" + err);
+                return;
+            }
+            if (operators.length != 0) {
+                res.status(403).json("user already existed");
+                return
+            }
+
+            const operatorInstance = new OperatorSchema(op);
+            operatorInstance.save(function (err) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    res.status(200).json({"username": req.body.username,
+                        "password": req.body.password, "secretKey": opSecretKey});
+                }
+                return;
+            });
+        });
 }
 
 exports.user_list = function (req, res, next) {

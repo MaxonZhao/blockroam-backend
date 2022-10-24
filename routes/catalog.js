@@ -20,5 +20,10 @@ router.get('/fetch-user-summary/:homeOperator/:visitingOperator', data_exchange_
 router.get('/fetch-billing-history', data_exchange_controller.fetchBillingHistory);
 router.get('/balance', data_exchange_controller.checkAccountBalance);
 
+// authentication
+router.post('/register', user_controller.register);
+router.post('/login', user_controller.login);
+
+
 
 module.exports = router;
