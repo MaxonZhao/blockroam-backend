@@ -3,15 +3,13 @@ pragma solidity ^0.8.7;
 
 contract RoamingDataManagement {
     // string[] public serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bells", "AT&T"];
-    // address[] public operatorAddresses = [0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d, 0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7,
-    // 0x774A428064D0e6443e7f1368719386B2aA5B53B7, 0x401a65d9BFc4641D8153F4bf804c358Da25539BA, 
-    // 0xfA5e3ba0C642aB778BE226147826EB20277F299b, 0xcA75d0aE72A14b66e9A9993DCe905677A642605a];
 
     string[] public serviceProviders;
     address[] public operatorAddresses;
 
     mapping(address => string) public operatorsAddrToName;
     mapping(string => address) public operatorsNameToAddr;
+    mapping(address => string) public operatorSecretKeys;
     
 
     uint public totalDeposit;
@@ -160,13 +158,18 @@ contract RoamingDataManagement {
 
     function fetchBillingHistory() public view returns(BillingRecord[] memory) {
         return billingHistory;
-    } 
+    }
+
+    function uploadSecretKey(address addr, string secretKey) public {
+        require(uploadSecretKey[addr].length == 0);
+        uploadSecretKey[addr] = secretKey;
+    }
 
     // Function to transfer Ether from this contract to address from input
     function transfer(address payable _to, uint _amount) public {
         (bool success, ) = _to.call{value: _amount}("");
         require(success, "Failed to send Ether");
-    } 
+    }
 }
 
 
