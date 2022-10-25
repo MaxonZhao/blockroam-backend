@@ -5,7 +5,7 @@ var router = express.Router();
 var user_controller = require('../controllers/userController');
 var serviceUsage_controller = require('../controllers/serviceUsageController');
 var data_exchange_controller = require('../controllers/dataExchangeController');
-
+var fraudulent_controller = require('../controllers/fraudulentController');
 
 /// USER ROUTES ///
 
@@ -23,6 +23,10 @@ router.get('/balance', data_exchange_controller.checkAccountBalance);
 // authentication
 router.post('/register', user_controller.register);
 router.post('/login', user_controller.login);
+
+//
+router.post('/fraudulent',fraudulent_controller.check_fraudulent)
+router.get('/fraudulent/:imsi/:operator', fraudulent_controller.Is_Updated_fraudulent)
 
 
 
