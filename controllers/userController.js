@@ -59,6 +59,7 @@ exports.register = function (req, res) {
     const op = {
         operatorName: req.body.username,
         password: req.body.password,
+        address: req.body.address,
         secretKey: opSecretKey
     };
 
@@ -81,8 +82,11 @@ exports.register = function (req, res) {
                 if (err) {
                     console.log(err);
                 } else {
-                    res.status(200).json({"username": req.body.username,
-                        "password": req.body.password, "secretKey": opSecretKey});
+                    res.status(200).json({
+                        "username": req.body.username,
+                        "password": req.body.password,
+                        "address": req.body.address,
+                        "secretKey": opSecretKey});
                 }
                 return;
             });
