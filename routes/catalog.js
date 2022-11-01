@@ -6,6 +6,7 @@ var user_controller = require('../controllers/userController');
 var serviceUsage_controller = require('../controllers/serviceUsageController');
 var data_exchange_controller = require('../controllers/dataExchangeController');
 var fraudulent_controller = require('../controllers/fraudulentController');
+const session = require("express-session");
 
 /// USER ROUTES ///
 

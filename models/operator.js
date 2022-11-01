@@ -6,6 +6,7 @@ var OperatorSchema = new Schema(
     {
         operatorName: {type: String, required: true},
         password: {type: String, required: true},
+        address: {type: String, required: true},
         secretKey: {type: String, required: true}
     }
 )

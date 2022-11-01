@@ -2,9 +2,16 @@ const async = require('async');
 const mongoose = require('mongoose')
 const uuidv5 = require('uuid').v5;
 
+const passport = require("passport");
+const passportLocal = require("passport-local").Strategy;
+
+const session = require("express-session");
+
+
 require('../models/serviceusage');
 require('../models/user');
 require('../models/operator')
+require('../config/passportConfig')(passport)
 
 let ServiceUsage = mongoose.model('service-usage');
 let User = mongoose.model('user');
@@ -26,31 +33,27 @@ exports.index = function (req, res) {
     });
 }
 
+
+
 exports.login = function (req, res) {
     const operatorName = req.body.username;
     const password = req.body.password;
+    
 
-    OperatorSchema.find({'operatorName': operatorName})
-        .exec(function(err, operators) {
+    passport.authenticate("local", (err, operator, info) => {
+        if (err) throw err;
+           if (!operator) res.send(info);
+          req.login.bind(req)(operator, (err) => {
+            if (err){
+                
+                throw(err)
+            };
+            res.send("Successfully Authenticated");
+          });
+        
+      })(req, res);
+    }
 
-            if (err) {
-                res.status(400).json("unable to login: \n" + err);
-                return;
-            }
-            if (operators.length == 0) {
-                res.status(400).json("unable to login, user does not exist");
-                return
-            } else {
-                const operator = operators[0];
-                if (password === operator.password) {
-                    res.status(200).json("Login Successful!")
-                } else {
-                    res.status(403).json("Wrong password!")
-                }
-                return;
-            }
-        });
-}
 
 exports.register = function (req, res) {
     // console.log(req.body);
@@ -59,6 +62,7 @@ exports.register = function (req, res) {
     const op = {
         operatorName: req.body.username,
         password: req.body.password,
+        address: req.body.address,
         secretKey: opSecretKey
     };
 
@@ -81,8 +85,11 @@ exports.register = function (req, res) {
                 if (err) {
                     console.log(err);
                 } else {
-                    res.status(200).json({"username": req.body.username,
-                        "password": req.body.password, "secretKey": opSecretKey});
+                    res.status(200).json({
+                        "username": req.body.username,
+                        "password": req.body.password,
+                        "address": req.body.address,
+                        "secretKey": opSecretKey});
                 }
                 return;
             });

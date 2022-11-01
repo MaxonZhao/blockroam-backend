@@ -11,7 +11,9 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog')
 const { default: mongoose } = require('mongoose');
-const cors = require('cors')
+const cors = require('cors');
+
+
 
 var app = express();
 
@@ -42,6 +44,28 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(upload.array());
 
+//auth
+const passport = require("passport");
+const passportLocal = require("passport-local").Strategy;
+const session = require("express-session");
+const bodyParser = require("body-parser");
+
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    secret: "secretcode",
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
+app.use(cookieParser("secretcode"));
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/catalog', catalogRouter)
@@ -62,6 +86,12 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
+
+//require("./config/passportConfig")(passport);
+
+
 
 
 
