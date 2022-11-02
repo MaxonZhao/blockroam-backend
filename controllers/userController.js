@@ -42,13 +42,26 @@ exports.login = function (req, res) {
 
     passport.authenticate("local", (err, operator, info) => {
         if (err) throw err;
-           if (!operator) res.send(info);
+           if (!operator){
+            console.log(info)
+            if(info.message === '400'){
+                res.status(400).json("unable to login, user does not exist");
+                return;
+            } else if(info.message === '403') {
+                res.status(403).json("Wrong password!")
+                return;
+            } else {
+                res.status(400).json("unable to login:");
+                return;
+            }
+           }
           req.login.bind(req)(operator, (err) => {
             if (err){
-                
+                res.status(400).json("unable to login:");
                 throw(err)
             };
-            res.send("Successfully Authenticated");
+            res.status(200).json("Successfully Authenticated");
+            return
           });
         
       })(req, res);
@@ -127,4 +140,14 @@ exports.fetch_local_user_list = function(req, res, next) {
     }) 
 
     // return res.status(404).send('Sorry we cannot find any!')
+}
+
+
+
+exports.check_Authenticated = function(req,res,next) {
+    if (req.isAuthenticated()) {
+        return next()
+      }
+
+      return res.status(500).json("need  to login in first")
 }

@@ -18,7 +18,7 @@ module.exports =  function(passport) {
         if (operators.length === 0) {
             console.log("no such user")
           //res.status(400).json("unable to login, user does not exist");
-          return done(null, false,{ message: 'No user with that email' });
+          return done(null, false,{ message: '400' });
         } else {
           const operator = operators[0];
           if (password === operator.password) {
@@ -26,7 +26,7 @@ module.exports =  function(passport) {
             return done(null,operator );
           } else {
             //res.status(403).json("Wrong password!")
-            return done(null, false,{ message: 'Password incorrect' });
+            return done(null, false,{ message: '403' });
           }
         }
       })}));
