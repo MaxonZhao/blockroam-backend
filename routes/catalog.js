@@ -24,6 +24,7 @@ router.get('/balance', data_exchange_controller.checkAccountBalance);
 // authentication
 router.post('/register',user_controller.register);
 router.post('/login',user_controller.login);
+//router.delete('/logout',user_controller.logout)
 
 //
 router.post('/fraudulent',fraudulent_controller.check_fraudulent)

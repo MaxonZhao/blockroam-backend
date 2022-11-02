@@ -6,6 +6,7 @@ var logger = require('morgan');
 var keys = require('./config/keys')
 var multer = require('multer');
 const upload = multer();
+const flash = require('express-flash')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -46,6 +47,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(flash())
 app.use(upload.array());
 
 //auth
@@ -64,16 +66,16 @@ app.use(
     credentials: true,
   })
 );
-
+app.use(cookieParser("secretcode"));
 app.use(
   session({
     secret: "secretcode",
     resave: true,
-    saveUninitialized: true,
+    saveUninitialized: false,
   })
 );
 
-app.use(cookieParser("secretcode"));
+
 app.use(passport.initialize());
 app.use(passport.session());
 

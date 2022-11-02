@@ -64,7 +64,7 @@ exports.login = function (req, res) {
             return
           });
         
-      })(req, res);
+      },{'session': true})(req, res);
     }
 
 
@@ -107,6 +107,10 @@ exports.register = function (req, res) {
                 return;
             });
         });
+}
+
+exports.register = function (req, res) {
+    req.logOut()
 }
 
 exports.user_list = function (req, res, next) {
