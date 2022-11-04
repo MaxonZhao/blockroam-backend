@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const keys = require('../config/keys');
 const mongoDB = keys.mongoURI;
 
-mongoose.connect(mongoDB, { useNewUrlParser: true });
+mongoose.connect(mongoDB, {useNewUrlParser: true});
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
@@ -20,14 +20,14 @@ var User = mongoose.model('user')
 
 
 const compiledRoamingDataManagementContract = require('../ethereum/build/RoamingDataManagement.json')
+const roamingDataManagementContract = require("../ethereum/roamingDataManagement");
 
 let accounts
 let roamingDataManagement
 const contractAddress = '0x73d3fD7285813A36C1dAb7f7620a09eb09C3eFd0'
 
 const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
-
-
+const opSecretKeys = ["rogerstest", "fidotest", "tmobiletest", "crickettest", "belltest", "at&ttest"];
 
 
 beforeEach(async () => {
@@ -35,117 +35,22 @@ beforeEach(async () => {
     rogers = accounts[0];
 
     roamingDataManagement = await new web3.eth.Contract(compiledRoamingDataManagementContract.abi)
-        .deploy({ data: compiledRoamingDataManagementContract.evm.bytecode.object })
-        .send({ from: accounts[0], gas: '5000000' })
+        .deploy({data: compiledRoamingDataManagementContract.evm.bytecode.object})
+        .send({from: accounts[0], gas: '5000000'})
 
 });
 
 describe('Roaming Data Management System', () => {
-    // describe('Initialization checks', () => {
-    //     it('deploys a roaming data management contract', async () => {
-    //         assert.ok(roamingDataManagement.options.address);
-    //     });
-    //     it('builds the operators mapping table', async () => {
-    //         const serviceProviderAddresses = accounts.slice(0, 6);
-    //         serviceProviderAddresses.map(async (operatorAddr, i) => {
-    //             await roamingDataManagement.methods
-    //                 .registerRoamingOperator(operatorAddr, serviceProviders[i])
-    //                 .send({
-    //                     from: serviceProviderAddresses[i],
-    //                     gas: '1000000'
-    //                 }, (err, res) => {
-    //                     if (err) {
-    //                         console.log('***************ERROR********************\n\n\n')
-    //                         console.log(err);
-    //                         console.log('***************ERROR********************\n\n\n')
-    //                     }
-    //                 });
-
-    //             let spn = await roamingDataManagement.methods
-    //                 .serviceProviders(i)
-    //                 .call();
-
-    //             if (i == serviceProviderAddresses.length - 1) console.log();
-
-    //             let spa = await roamingDataManagement.methods
-    //                 .operatorAddresses(i)
-    //                 .call()
-
-    //             if (i == serviceProviderAddresses.length - 1) console.log();
-
-    //             let spn_map = await roamingDataManagement.methods
-    //                 .operatorsAddrToName(serviceProviderAddresses[i])
-    //                 .call()
-
-    //             assert.equal(spn, spn_map);
-
-    //             if (i == serviceProviderAddresses.length - 1) console.log();
-
-    //             let spa_map = await roamingDataManagement.methods
-    //                 .operatorsNameToAddr(serviceProviders[i])
-    //                 .call()
-
-    //             assert.equal(spa, spa_map);
-
-    //             if (i == serviceProviderAddresses.length - 1) console.log('test done!')
-    //         })
-
-    //         const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
-    //             .sort('imsi')
-    //             .exec();
-
-
-    //         let uploadFuncs = [];
-    //         for (let i = 0; i < users.length; ++i) {
-    //             let entry = users[i];
-
-    //             const f = async () => {
-    //                 await roamingDataManagement.methods
-    //                     .uploadUserDataSummary(entry.imsi, entry.number,
-    //                         entry.serviceProvider, Math.round(entry.voiceCallUsage),
-    //                         Math.round(entry.internetUsage), entry.smsUsage)
-    //                     .send({
-    //                         from: serviceProviderAddresses[2],   // Fido, fido is the visiting operator
-    //                         gas: '1000000'
-    //                     })
-    //             }
-    //             uploadFuncs.push(f);
-    //         }
-
-    //         // console.log(uploadFuncs)
-    //         let uploadingFinished = false;
-    //         await async.parallel(uploadFuncs, async function (err, results) {
-    //             if (err) console.log(err);
-    //             else {
-    //                 console.log("uploading user data as Fido summary done!")
-    //             }
-    //             console.log('\n \t fetching data as Rogers!\n\n');
-    //             const res = await roamingDataManagement.methods
-    //                 // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
-    //                 .fetchUserDataSummary("T-Mobile")
-    //                 // .userTable(accounts[0], 0)
-    //                 .call({ from: serviceProviderAddresses[0] });
-    //             console.log('\n\n\n \t fetching data as Rogers done!');
-    //             console.log(res[0].length);
-    //             console.log(res[1].length);
-    //             console.log(res);
-    //         })
-    //     })
-    // })
-
 
     const initialBalance = '100'
-    describe('Initialization checks --> registration fees', () => {
-        it('deploys a roaming data management contract', async () => {
-            assert.ok(roamingDataManagement.options.address);
-        });
-        it('builds the operators mapping table', async () => {
+
+    describe('Registration Check up', () => {
+        it('registration test', async () => {
             const serviceProviderAddresses = accounts.slice(0, 6);
-            console.log(serviceProviderAddresses);
             for (let i = 0; i < serviceProviderAddresses.length; ++i) {
                 const operatorAddr = serviceProviderAddresses[i]
                 await roamingDataManagement.methods
-                    .registerRoamingOperator(operatorAddr, serviceProviders[i], new Date().valueOf())
+                    .registerRoamingOperator(operatorAddr, serviceProviders[i], new Date().valueOf(), opSecretKeys[i])
                     .send({
                         from: serviceProviderAddresses[i],
                         value: web3.utils.toWei(initialBalance, 'wei'),
@@ -157,34 +62,6 @@ describe('Roaming Data Management System', () => {
                             console.log('***************ERROR********************\n\n\n')
                         }
                     });
-
-                let spn = await roamingDataManagement.methods
-                    .serviceProviders(i)
-                    .call();
-
-                if (i == serviceProviderAddresses.length - 1) console.log();
-
-                let spa = await roamingDataManagement.methods
-                    .operatorAddresses(i)
-                    .call()
-
-                if (i == serviceProviderAddresses.length - 1) console.log();
-
-                let spn_map = await roamingDataManagement.methods
-                    .operatorsAddrToName(serviceProviderAddresses[i])
-                    .call()
-
-                assert.equal(spn, spn_map);
-
-                if (i == serviceProviderAddresses.length - 1) console.log();
-
-                let spa_map = await roamingDataManagement.methods
-                    .operatorsNameToAddr(serviceProviders[i])
-                    .call()
-
-                assert.equal(spa, spa_map);
-
-                if (i == serviceProviderAddresses.length - 1) console.log('test done!')
             }
 
             console.log('checking the registration fee ---')
@@ -209,42 +86,42 @@ describe('Roaming Data Management System', () => {
             console.log("checking initial balance")
             let rogsersAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[0])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of Rogers' account")
             console.log(rogsersAmount);
 
             let fidoAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[1])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of Fido's account")
             console.log(fidoAmount);
 
             let tmobileAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[2])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of tmobile's account")
             console.log(tmobileAmount);
 
             let cricketAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[3])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of cricket's account")
             console.log(cricketAmount);
 
             let bellAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[4])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of Bell's account")
             console.log(bellAmount);
 
             let atmtAmount = await roamingDataManagement.methods
                 .bank(serviceProviderAddresses[5])
-                .call({ from: serviceProviderAddresses[0] });
+                .call({from: serviceProviderAddresses[0]});
 
             console.log("current balance of AT&T's account")
             console.log(atmtAmount);
@@ -252,6 +129,8 @@ describe('Roaming Data Management System', () => {
 
             // ############################## finish checking balance of each roaming operator #####################################
 
+
+            // ############################## Upload Roaming Data as Fido #####################################
 
             const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
                 .sort('imsi')
@@ -281,220 +160,288 @@ describe('Roaming Data Management System', () => {
 
                 }
                 uploadFuncs.push(f);
-
             }
 
 
-            await async.parallel(uploadFuncs, async function (err, results) {
+            await async.parallel(uploadFuncs, async (err, results) => {
                 if (err) console.log(err);
                 else {
                     console.log("uploading user data as Fido summary done!")
-                    console.log('checking billing history ---')
+                    // ############################## Fetch Roaming Data as Rogers #####################################
+
+                    console.log('\n \t fetching data as Rogers!\n\n');
                     await roamingDataManagement.methods
-                        .fetchBillingHistory()
-                        .call({
-                            from: serviceProviderAddresses[0],
-                            gas: '1000000'
-                        }, (err, res) => {
+                        .fetchUserDataSummary("Fido", opSecretKeys[0])
+                        .call({from: serviceProviderAddresses[0]}, (err, roamingData) => {
                             if (err) {
                                 console.log('***************ERROR********************\n\n\n')
                                 console.log(err);
                                 console.log('***************ERROR********************\n\n\n')
                             } else {
-                                console.log(res)
+                                console.log("\n\n\n\n\n")
+                                console.log('\n\n\n \t fetching data as Rogers done!');
+                                console.log(roamingData);
                             }
                         });
 
-
-                    // ########################################    checking account balance of each roaming operator   ############################################
-                    rogsersAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[0])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of Rogers' account")
-                    console.log(rogsersAmount);
-
-                    fidoAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[1])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of Fido's account")
-                    console.log(fidoAmount);
-
-                    tmobileAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[2])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of tmobile's account")
-                    console.log(tmobileAmount);
-
-                    cricketAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[3])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of cricket's account")
-                    console.log(cricketAmount);
-
-                    bellAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[4])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of Bell's account")
-                    console.log(bellAmount);
-
-                    atmtAmount = await roamingDataManagement.methods
-                        .bank(serviceProviderAddresses[5])
-                        .call({ from: serviceProviderAddresses[0] });
-
-                    console.log("current balance of AT&T's account")
-                    console.log(atmtAmount);
-
-                    // ############################## finish checking balance of each roaming operator #####################################
+                    // ############################## Fetch Roaming Data as Fido DONE #####################################
                 }
-                console.log('\n \t fetching data as Rogers!\n\n');
-                await roamingDataManagement.methods
-                    // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
-                    .fetchUserDataSummary("Fido")
-                    // .userTable(accounts[0], 0)
-                    .call({ from: serviceProviderAddresses[0] });
-                console.log('\n\n\n \t fetching data as Rogers done!');
-                // console.log(res[0].length);
-                // console.log(res[1].length);
-                // console.log(res);
-                console.log("\n\n\n\n\n")
-
-                // checking total balance
-                const bankBalance = await roamingDataManagement.methods
-                    .balance()
-                    .call({ from: serviceProviderAddresses[0] });
-
-                console.log("Checking bank balance")
-                console.log(bankBalance);
+            });
+            // ############################## Upload Roaming Data as Fido Done #####################################
 
 
-            })
-
-
-
-
-
-
-
-            // // ############################# upload data again ###############################
-            // // let today = new Date();
-            // t1 = new Date();
-            // uploadFuncs = [];
-            // for (let i = 0; i < users.length; ++i) {
-
-            //     // console.log(t);
-            //     let entry = users[i];
-            //     if (entry.serviceProvider == "Bell") continue;
-            //     const f = async () => {
-            //         t1 = new Date(t1.getFullYear(), t1.getMonth(), t1.getDate() + 1);
-            //         await roamingDataManagement.methods
-            //             .uploadUserDataSummary(entry.imsi, entry.number,
-            //                 entry.serviceProvider, Math.round(entry.voiceCallUsage),
-            //                 Math.round(entry.internetUsage), entry.smsUsage, new Date().valueOf(), new Date().valueOf(), new Date().valueOf(), new Date().valueOf(), t1.valueOf())
-            //             .send({
-            //                 from: serviceProviderAddresses[4],   // Bell, Bell is the visiting operator
-            //                 gas: '1000000'
-            //             })
-            //     }
-            //     uploadFuncs.push(f);
-
-            // }
-
-
-            // await async.parallel(uploadFuncs, async function (err, results) {
-            //     if (err) console.log(err);
-            //     else {
-            //         console.log("uploading user data as Bell summary done!")
-            //         console.log('checking billing history ---')
-            //         await roamingDataManagement.methods
-            //             .fetchBillingHistory()
-            //             .call({
-            //                 from: serviceProviderAddresses[0],
-            //                 gas: '1000000'
-            //             }, (err, res) => {
-            //                 if (err) {
-            //                     console.log('***************ERROR********************\n\n\n')
-            //                     console.log(err);
-            //                     console.log('***************ERROR********************\n\n\n')
-            //                 } else {
-            //                     console.log(res)
-            //                 }
-            //             });
-
-
-            //         // ########################################    checking account balance of each roaming operator   ############################################
-            //         rogsersAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[0])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of Rogers' account")
-            //         console.log(rogsersAmount);
-
-            //         fidoAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[1])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of Fido's account")
-            //         console.log(fidoAmount);
-
-            //         tmobileAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[2])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of tmobile's account")
-            //         console.log(tmobileAmount);
-
-            //         cricketAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[3])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of cricket's account")
-            //         console.log(cricketAmount);
-
-            //         bellAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[4])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of Bell's account")
-            //         console.log(bellAmount);
-
-            //         atmtAmount = await roamingDataManagement.methods
-            //             .bank(serviceProviderAddresses[5])
-            //             .call({ from: serviceProviderAddresses[0] });
-
-            //         console.log("current balance of AT&T's account")
-            //         console.log(atmtAmount);
-
-            //         // ############################## finish checking balance of each roaming operator #####################################
-            //     }
-            //     console.log('\n \t fetching data as Rogers!\n\n');
-            //     await roamingDataManagement.methods
-            //         // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
-            //         .fetchUserDataSummary("Bell")
-            //         // .userTable(accounts[0], 0)
-            //         .call({ from: serviceProviderAddresses[0] });
-            //     console.log('\n\n\n \t fetching data as Rogers done!');
-            //     // console.log(res[0].length);
-            //     // console.log(res[1].length);
-            //     // console.log(res);
-
-
-                console.log("\n\n\n\n\n")
-
-                // checking total balance
-                const bankBalance = await roamingDataManagement.methods
-                    .balance()
-                    .call({ from: serviceProviderAddresses[0] });
-
-                console.log("Checking bank balance")
-                console.log(bankBalance);
-
-            // })
         })
+
     })
+    // describe('Initialization checks --> registration fees', () => {
+    //     it('deploys a roaming data management contract', async () => {
+    //         assert.ok(roamingDataManagement.options.address);
+    //     });
+    //     it('builds the operators mapping table', async () => {
+    //         const serviceProviderAddresses = accounts.slice(0, 6);
+    //         console.log(serviceProviderAddresses);
+    //         for (let i = 0; i < serviceProviderAddresses.length; ++i) {
+    //             const operatorAddr = serviceProviderAddresses[i]
+    //             await roamingDataManagement.methods
+    //                 .registerRoamingOperator(operatorAddr, serviceProviders[i], new Date().valueOf())
+    //                 .send({
+    //                     from: serviceProviderAddresses[i],
+    //                     value: web3.utils.toWei(initialBalance, 'wei'),
+    //                     gas: '1000000'
+    //                 }, (err, res) => {
+    //                     if (err) {
+    //                         console.log('***************ERROR********************\n\n\n')
+    //                         console.log(err);
+    //                         console.log('***************ERROR********************\n\n\n')
+    //                     }
+    //                 });
+    //
+    //             let spn = await roamingDataManagement.methods
+    //                 .serviceProviders(i)
+    //                 .call();
+    //
+    //             if (i == serviceProviderAddresses.length - 1) console.log();
+    //
+    //             let spa = await roamingDataManagement.methods
+    //                 .operatorAddresses(i)
+    //                 .call()
+    //
+    //             if (i == serviceProviderAddresses.length - 1) console.log();
+    //
+    //             let spn_map = await roamingDataManagement.methods
+    //                 .operatorsAddrToName(serviceProviderAddresses[i])
+    //                 .call()
+    //
+    //             assert.equal(spn, spn_map);
+    //
+    //             if (i == serviceProviderAddresses.length - 1) console.log();
+    //
+    //             let spa_map = await roamingDataManagement.methods
+    //                 .operatorsNameToAddr(serviceProviders[i])
+    //                 .call()
+    //
+    //             assert.equal(spa, spa_map);
+    //
+    //             if (i == serviceProviderAddresses.length - 1) console.log('test done!')
+    //         }
+    //
+    //         console.log('checking the registration fee ---')
+    //         const res = await roamingDataManagement.methods
+    //             .balance()
+    //             .call({
+    //                 from: serviceProviderAddresses[0],
+    //                 gas: '1000000'
+    //             }, (err, res) => {
+    //                 if (err) {
+    //                     console.log('***************ERROR********************\n\n\n')
+    //                     console.log(err);
+    //                     console.log('***************ERROR********************\n\n\n')
+    //                 } else {
+    //                     console.log(res)
+    //                 }
+    //             });
+    //         assert.equal(res, 6 * initialBalance)
+    //
+    //
+    //         // ########################################    checking account balance of each roaming operator   ############################################
+    //         console.log("checking initial balance")
+    //         let rogsersAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[0])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of Rogers' account")
+    //         console.log(rogsersAmount);
+    //
+    //         let fidoAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[1])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of Fido's account")
+    //         console.log(fidoAmount);
+    //
+    //         let tmobileAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[2])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of tmobile's account")
+    //         console.log(tmobileAmount);
+    //
+    //         let cricketAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[3])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of cricket's account")
+    //         console.log(cricketAmount);
+    //
+    //         let bellAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[4])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of Bell's account")
+    //         console.log(bellAmount);
+    //
+    //         let atmtAmount = await roamingDataManagement.methods
+    //             .bank(serviceProviderAddresses[5])
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("current balance of AT&T's account")
+    //         console.log(atmtAmount);
+    //         console.log("\n\n")
+    //
+    //         // ############################## finish checking balance of each roaming operator #####################################
+    //
+    //
+    //         const users = await User.find({}, 'imsi number serviceProvider voiceCallUsage smsUsage internetUsage')
+    //             .sort('imsi')
+    //             .exec();
+    //
+    //         // console.log(users);
+    //
+    //         // let today = new Date();
+    //         let t1 = new Date();
+    //         let uploadFuncs = [];
+    //         for (let i = 0; i < users.length; ++i) {
+    //
+    //             // console.log(t);
+    //             let entry = users[i];
+    //             if (entry.serviceProvider == "Fido") continue;
+    //             const f = async () => {
+    //                 t1 = new Date(t1.getFullYear(), t1.getMonth(), t1.getDate() + 1);
+    //
+    //                 await roamingDataManagement.methods
+    //                     .uploadUserDataSummary(entry.imsi, entry.number,
+    //                         entry.serviceProvider, Math.round(entry.voiceCallUsage),
+    //                         Math.round(entry.internetUsage), entry.smsUsage, new Date().valueOf(), new Date().valueOf(), new Date().valueOf(), new Date().valueOf(), t1.valueOf())
+    //                     .send({
+    //                         from: serviceProviderAddresses[1],   // Fido, fido is the visiting operator
+    //                         gas: '1000000'
+    //                     })
+    //
+    //             }
+    //             uploadFuncs.push(f);
+    //
+    //         }
+    //
+    //
+    //         await async.parallel(uploadFuncs, async function (err, results) {
+    //             if (err) console.log(err);
+    //             else {
+    //                 console.log("uploading user data as Fido summary done!")
+    //                 console.log('checking billing history ---')
+    //                 await roamingDataManagement.methods
+    //                     .fetchBillingHistory()
+    //                     .call({
+    //                         from: serviceProviderAddresses[0],
+    //                         gas: '1000000'
+    //                     }, (err, res) => {
+    //                         if (err) {
+    //                             console.log('***************ERROR********************\n\n\n')
+    //                             console.log(err);
+    //                             console.log('***************ERROR********************\n\n\n')
+    //                         } else {
+    //                             console.log(res)
+    //                         }
+    //                     });
+    //
+    //
+    //                 // ########################################    checking account balance of each roaming operator   ############################################
+    //                 rogsersAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[0])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of Rogers' account")
+    //                 console.log(rogsersAmount);
+    //
+    //                 fidoAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[1])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of Fido's account")
+    //                 console.log(fidoAmount);
+    //
+    //                 tmobileAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[2])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of tmobile's account")
+    //                 console.log(tmobileAmount);
+    //
+    //                 cricketAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[3])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of cricket's account")
+    //                 console.log(cricketAmount);
+    //
+    //                 bellAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[4])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of Bell's account")
+    //                 console.log(bellAmount);
+    //
+    //                 atmtAmount = await roamingDataManagement.methods
+    //                     .bank(serviceProviderAddresses[5])
+    //                     .call({from: serviceProviderAddresses[0]});
+    //
+    //                 console.log("current balance of AT&T's account")
+    //                 console.log(atmtAmount);
+    //
+    //                 // ############################## finish checking balance of each roaming operator #####################################
+    //             }
+    //             console.log('\n \t fetching data as Rogers!\n\n');
+    //             await roamingDataManagement.methods
+    //                 // .dataSummaryTable('0xD18A6Cd4F4307a51C000aCE84672d3CFca72670d', "997eb760-9433-431f-98bc-a23d479733b8", "0x86E1DDDe08cc9f897bf7333dB30951eEd46383A7")
+    //                 .fetchUserDataSummary("Fido")
+    //                 // .userTable(accounts[0], 0)
+    //                 .call({from: serviceProviderAddresses[0]});
+    //             console.log('\n\n\n \t fetching data as Rogers done!');
+    //             // console.log(res[0].length);
+    //             // console.log(res[1].length);
+    //             // console.log(res);
+    //             console.log("\n\n\n\n\n")
+    //
+    //             // checking total balance
+    //             const bankBalance = await roamingDataManagement.methods
+    //                 .balance()
+    //                 .call({from: serviceProviderAddresses[0]});
+    //
+    //             console.log("Checking bank balance")
+    //             console.log(bankBalance);
+    //
+    //
+    //         })
+    //
+    //         console.log("\n\n\n\n\n")
+    //
+    //         // checking total balance
+    //         const bankBalance = await roamingDataManagement.methods
+    //             .balance()
+    //             .call({from: serviceProviderAddresses[0]});
+    //
+    //         console.log("Checking bank balance")
+    //         console.log(bankBalance);
+    //     })
+    // })
 })
 

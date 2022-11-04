@@ -5,10 +5,17 @@ const uuidv5 = require('uuid').v5;
 require('../models/serviceusage');
 require('../models/user');
 require('../models/operator')
+const roamingDataManagementContract = require("../ethereum/roamingDataManagement");
+const ganache = require('ganache-cli');
+const Web3 = require('web3')
+const web3 = new Web3(ganache.provider());
+
 
 let ServiceUsage = mongoose.model('service-usage');
 let User = mongoose.model('user');
 let OperatorSchema = mongoose.model('operator');
+
+const initialBalance = 100
 
 const USER_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
  
@@ -78,7 +85,7 @@ exports.register = function (req, res) {
             }
 
             const operatorInstance = new OperatorSchema(op);
-            operatorInstance.save(function (err) {
+            operatorInstance.save(async function (err) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -88,8 +95,25 @@ exports.register = function (req, res) {
                         "address": req.body.address,
                         "secretKey": opSecretKey});
                 }
-                return;
+
+                await roamingDataManagementContract.methods
+                    .registerRoamingOperator(req.body.address, req.body.username, new Date().valueOf(), opSecretKey)
+                    .send({
+                        from: req.body.address,
+                        value: web3.utils.toWei(initialBalance, 'wei'),
+                        gas: '1000000'
+                    }, (err, res) => {
+                        if (err) {
+                            console.log('***************ERROR********************\n\n\n')
+                            console.log(err);
+                            console.log('***************ERROR********************\n\n\n')
+                        } else {
+                            return res.status(200).json(`Operator ${req.body.username} has been registered!`);
+                        }
+                    });
             });
+
+
         });
 }
 

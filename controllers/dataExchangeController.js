@@ -104,22 +104,6 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     for (let i = 0; i < users.length; ++i) {
         let entry = users[i];
         if (entry.serviceProvider === visitingOperator) continue;
-        // console.log(entry)
-        // await roamingDataManagementContract.methods
-        //     .uploadUserDataSummary(entry.imsi, entry.number,
-        //         entry.serviceProvider, Math.round(entry.voiceCallUsage),
-        //         Math.round(entry.internetUsage), entry.smsUsage)
-        //     .send({
-        //         from: accounts[1],   // Fido, fido is the visiting operator
-        //         gas: '1000000'
-        //     })
-
-        // console.log(entry.serviceStartTime.getTime());
-        // console.log(entry.internetStartTime.getTime());
-        // console.log(entry.voiceCallStartTime.getTime());
-        // console.log(entry.smsStartTime.getTime());
-
-        // console.log(entry)
 
         const f = async () => {
             await roamingDataManagementContract.methods
@@ -143,8 +127,6 @@ exports.uploadUserDataSummary = async function (req, res, next) {
             return res.json("uploading user data summary done!")
         }
     })
-
-    // return res.json("uploading user data summary ...");
 }
 
 exports.fetchBillingHistory = async function (req, res, next) {
@@ -200,19 +182,35 @@ exports.checkAccountBalance = async function (req, res, next) {
 exports.fetchUserDataSummary = async function (req, res, next) {
     const accounts = await getAccount;
 
-    const visitingOperatorName = req.params.visitingOperator;
-    const homeOperatorName = req.params.homeOperator;
-    const data = await roamingDataManagementContract.methods
-        .fetchUserDataSummary(visitingOperatorName)
-        .call({ from: accounts[operatorIndexMap[homeOperatorName]] });
-    console.log(`\n\n\n \t fetching data as ${homeOperatorName} done!`);
-    console.log(data[0])
-    console.log('\n\n\n\n');
-    console.log(data[1])
+    const visitingOperatorName = req.body.visitingOperator;
+    const homeOperatorName = req.body.homeOperator;
+    console.log(req.body.visitingOperator)
+    console.log(req.body.homeOperator)
+    console.log(req.body.secretKey)
 
-    return res.json(
-        data
-    )
+
+    const data = await roamingDataManagementContract.methods
+        .fetchUserDataSummary(visitingOperatorName, req.body.secretKey)
+        .call({ from: accounts[operatorIndexMap[homeOperatorName]] }, (err, result) => {
+            if (err) {
+                console.log('***************ERROR********************\n\n\n')
+                console.log(err);
+                console.log('***************ERROR********************\n\n\n')
+                return res.json("ungranted access!")
+            } else {
+                // acconutBalance[serviceProviders[i]] = result;
+                console.log(`\n\n\n \t fetching data as ${homeOperatorName} done!`);
+                console.log(data[0])
+                console.log('\n\n\n\n');
+                console.log(data[1])
+
+                return res.json(
+                    data
+                )
+            }
+        });
+
+
 }
 
 exports.fetchSubscriptionDataRecords = function (req, res, next) {
