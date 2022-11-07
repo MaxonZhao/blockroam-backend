@@ -13,7 +13,7 @@ var fraudulent_controller = require('../controllers/fraudulentController');
 router.get('/', user_controller.index);
 router.get('/users', user_controller.user_list);
 router.get('/users/:id', user_controller.user_detail);
-router.get('/users/local/:service_provider', user_controller.fetch_local_user_list);
+router.get('/users/local/:service_provider', user_controller.check_Authenticated,user_controller.fetch_local_user_list);
 router.get('/upload-user-data-summary/:visitingOperator', data_exchange_controller.uploadUserDataSummary);
 // router.get('/register-operators', data_exchange_controller.registerOperators);
 router.get('/fetch-billing-history', data_exchange_controller.fetchBillingHistory);
