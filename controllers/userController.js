@@ -15,10 +15,10 @@ let ServiceUsage = mongoose.model('service-usage');
 let User = mongoose.model('user');
 let OperatorSchema = mongoose.model('operator');
 
-const initialBalance = 100
+const initialBalance = '100'
 
 const USER_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
- 
+
 exports.index = function (req, res) {
     async.parallel({
         user_count: function (callback) {
@@ -29,7 +29,7 @@ exports.index = function (req, res) {
             ServiceUsage.countDocuments({}, callback);
         }
     }, function (err, results) {
-        res.render('index', { title: 'blockroam backend', data: results, error: err })
+        res.render('index', {title: 'blockroam backend', data: results, error: err})
     });
 }
 
@@ -38,7 +38,7 @@ exports.login = function (req, res) {
     const password = req.body.password;
 
     OperatorSchema.find({'operatorName': operatorName})
-        .exec(function(err, operators) {
+        .exec(function (err, operators) {
 
             if (err) {
                 res.status(400).json("unable to login: \n" + err);
@@ -71,7 +71,7 @@ exports.register = function (req, res) {
     };
 
     OperatorSchema.find({'operatorName': op.operatorName})
-        .exec(function(err, operators) {
+        .exec(function (err, operators) {
             console.log("-------------- registering --------------")
             console.log(op.operatorName)
             console.log(operators)
@@ -89,31 +89,28 @@ exports.register = function (req, res) {
                 if (err) {
                     console.log(err);
                 } else {
-                    res.status(200).json({
-                        "username": req.body.username,
-                        "password": req.body.password,
-                        "address": req.body.address,
-                        "secretKey": opSecretKey});
+                    await roamingDataManagementContract.methods
+                        .registerRoamingOperator(req.body.address, req.body.username, new Date().valueOf(), opSecretKey)
+                        .send({
+                            from: req.body.address,
+                            value: web3.utils.toWei(initialBalance, 'wei'),
+                            gas: '1000000'
+                        }, (err, result) => {
+                            if (err) {
+                                console.log('***************ERROR********************\n\n\n')
+                                console.log(err);
+                                console.log('***************ERROR********************\n\n\n')
+                            } else {
+                                return res.status(200).json({
+                                    "username": req.body.username,
+                                    "password": req.body.password,
+                                    "address": req.body.address,
+                                    "secretKey": opSecretKey
+                                });
+                            }
+                        });
                 }
-
-                await roamingDataManagementContract.methods
-                    .registerRoamingOperator(req.body.address, req.body.username, new Date().valueOf(), opSecretKey)
-                    .send({
-                        from: req.body.address,
-                        value: web3.utils.toWei(initialBalance, 'wei'),
-                        gas: '1000000'
-                    }, (err, res) => {
-                        if (err) {
-                            console.log('***************ERROR********************\n\n\n')
-                            console.log(err);
-                            console.log('***************ERROR********************\n\n\n')
-                        } else {
-                            return res.status(200).json(`Operator ${req.body.username} has been registered!`);
-                        }
-                    });
             });
-
-
         });
 }
 
@@ -122,30 +119,34 @@ exports.user_list = function (req, res, next) {
         .sort('imsi')
         .populate('serviceUsage')
         .exec(function (err, list_users) {
-            if (err) { return next(err); }
-            res.render('user_list', { title: 'User List', user_list: list_users })
+            if (err) {
+                return next(err);
+            }
+            res.render('user_list', {title: 'User List', user_list: list_users})
         });
 }
 
 exports.user_detail = function (req, res, next) {
     User.findById(req.params.id)
         .populate('serviceUsage')
-        .exec(function(err, user) {
-            if (err) {return next(err)}
-            
+        .exec(function (err, user) {
+            if (err) {
+                return next(err)
+            }
+
             res.render('user_detail', {user: user})
         })
 }
 
-exports.fetch_local_user_list = function(req, res, next) {
+exports.fetch_local_user_list = function (req, res, next) {
     const sp = req.params.service_provider;
     console.log(sp)
     User.find({serviceProvider: sp})
-    .populate('serviceUsage')
-    .exec(function(err, user_list) {
-        console.log(user_list);
-        return res.status(200).json({'service provider': sp, 'user list': user_list})
-    }) 
+        .populate('serviceUsage')
+        .exec(function (err, user_list) {
+            console.log(user_list);
+            return res.status(200).json({'service provider': sp, 'user list': user_list})
+        })
 
     // return res.status(404).send('Sorry we cannot find any!')
 }

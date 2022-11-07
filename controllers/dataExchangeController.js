@@ -94,7 +94,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     const accounts = await getAccount;
     const visitingOperator = req.params.visitingOperator
     console.log(visitingOperator)
-    console.log(accounts)
+    // console.log(accounts)
     const users = await User.find({},)
         .sort('imsi')
         .exec();
@@ -189,7 +189,7 @@ exports.fetchUserDataSummary = async function (req, res, next) {
     console.log(req.body.secretKey)
 
 
-    const data = await roamingDataManagementContract.methods
+    await roamingDataManagementContract.methods
         .fetchUserDataSummary(visitingOperatorName, req.body.secretKey)
         .call({ from: accounts[operatorIndexMap[homeOperatorName]] }, (err, result) => {
             if (err) {
@@ -200,12 +200,12 @@ exports.fetchUserDataSummary = async function (req, res, next) {
             } else {
                 // acconutBalance[serviceProviders[i]] = result;
                 console.log(`\n\n\n \t fetching data as ${homeOperatorName} done!`);
-                console.log(data[0])
+                console.log(result[0])
                 console.log('\n\n\n\n');
-                console.log(data[1])
+                console.log(result[1])
 
                 return res.json(
-                    data
+                    result
                 )
             }
         });
