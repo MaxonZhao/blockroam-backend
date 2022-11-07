@@ -14,15 +14,14 @@ var User = mongoose.model('user')
 
 const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
 const operatorIndexMap =
-{
-    "Rogers": 0,
-    "Fido": 1,
-    "T-Mobile": 2,
-    "Cricket": 3,
-    "Bell": 4,
-    "AT&T": 5
-}
-
+    {
+        "Rogers": 0,
+        "Fido": 1,
+        "T-Mobile": 2,
+        "Cricket": 3,
+        "Bell": 4,
+        "AT&T": 5
+    }
 
 
 exports.registerOperators = async function (req, res, next) {
@@ -188,17 +187,16 @@ exports.fetchUserDataSummary = async function (req, res, next) {
     console.log(req.body.homeOperator)
     console.log(req.body.secretKey)
 
-
     await roamingDataManagementContract.methods
         .fetchUserDataSummary(visitingOperatorName, req.body.secretKey)
-        .call({ from: accounts[operatorIndexMap[homeOperatorName]] }, (err, result) => {
+        .call({from: accounts[operatorIndexMap[homeOperatorName]]}, (err, result) => {
             if (err) {
                 console.log('***************ERROR********************\n\n\n')
                 console.log(err);
                 console.log('***************ERROR********************\n\n\n')
                 return res.json("ungranted access!")
             } else {
-                // acconutBalance[serviceProviders[i]] = result;
+                // accountBalance[serviceProviders[i]] = result;
                 console.log(`\n\n\n \t fetching data as ${homeOperatorName} done!`);
                 console.log(result[0])
                 console.log('\n\n\n\n');
@@ -208,8 +206,8 @@ exports.fetchUserDataSummary = async function (req, res, next) {
                     result
                 )
             }
-        });
-
+        })
+        .catch(e => console.log(e));
 
 }
 
