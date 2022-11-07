@@ -28,17 +28,17 @@ mongoose.connect(mongoDB, {useNewUrlParser:true});
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'URLs to trust of allow');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  if ('OPTIONS' == req.method) {
-  res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+// app.all('*', function(req, res, next) {
+//   res.header('Access-Control-Allow-Origin', 'URLs to trust of allow');
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type');
+//   res.setHeader('Access-Control-Allow-Credentials', true);
+//   if ('OPTIONS' == req.method) {
+//   res.sendStatus(200);
+//   } else {
+//     next();
+//   }
+// });
 
 
 
@@ -62,11 +62,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // <-- location of the react app were connecting to
+    origin: ["http://localhost:3000", "http://localhost:4000"],// <-- location of the react app were connecting to
     credentials: true,
   })
 );
-app.use(cookieParser("secretcode"));
+
 app.use(
   session({
     secret: "secretcode",
@@ -75,7 +75,7 @@ app.use(
   })
 );
 
-
+app.use(cookieParser("secretcode"));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -103,9 +103,6 @@ app.use(function(err, req, res, next) {
 
 
 //require("./config/passportConfig")(passport);
-
-
-
 
 
 module.exports = app;
