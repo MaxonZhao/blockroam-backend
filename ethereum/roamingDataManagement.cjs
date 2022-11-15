@@ -1,4 +1,4 @@
-const web3 = require('./web3')
+const web3 = require('./web3.cjs')
 const RoamingDataManagement = require('./build/RoamingDataManagement.json');
 
 const instance = new web3.eth.Contract(

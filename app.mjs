@@ -1,22 +1,28 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var keys = require('./config/keys')
-var multer = require('multer');
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import keys from './config/keys.cjs'
+import multer from 'multer';
 const upload = multer();
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var catalogRouter = require('./routes/catalog')
-const { default: mongoose } = require('mongoose');
-const cors = require('cors')
+import indexRouter from './routes/index.mjs';
+import usersRouter from './routes/users.cjs';
+import catalogRouter from './routes/catalog.mjs';
+import MONGOOSE from 'mongoose'
+const { default: mongoose } = MONGOOSE;
+import cors from 'cors'
 
 var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
+
 app.set('view engine', 'pug');
 
 // mongodb connection setup
@@ -64,6 +70,5 @@ app.use(function(err, req, res, next) {
 });
 
 
-
-module.exports = app;
+export default app;
 

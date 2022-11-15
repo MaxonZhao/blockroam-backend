@@ -1,5 +1,5 @@
 import axios from 'axios';
-import keys from '../../config/keys.js'
+import keys from '../../config/keys.cjs'
 import mongoose from 'mongoose'
 import async from 'async'
 

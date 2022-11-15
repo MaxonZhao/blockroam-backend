@@ -1,11 +1,10 @@
-var express = require('express');
+import express from 'express';
 var router = express.Router();
 
 // require controller modules.
-var user_controller = require('../controllers/userController');
-var serviceUsage_controller = require('../controllers/serviceUsageController');
-var data_exchange_controller = require('../controllers/dataExchangeController');
-var fraudulent_controller = require('../controllers/fraudulentController');
+import user_controller from '../controllers/userController.cjs';
+import data_exchange_controller from '../controllers/dataExchangeController.mjs';
+import fraudulent_controller from '../controllers/fraudulentController.cjs';
 
 /// USER ROUTES ///
 
@@ -29,6 +28,9 @@ router.post('/login', user_controller.login);
 router.post('/fraudulent',fraudulent_controller.check_fraudulent)
 router.get('/fraudulent/:imsi/:operator', fraudulent_controller.Is_Updated_fraudulent)
 
+//
+// router.post('upload-file', data_exchange_controller.uploadFile)
 
 
-module.exports = router;
+
+export default router;

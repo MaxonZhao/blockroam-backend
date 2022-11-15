@@ -5,7 +5,7 @@ const Web3 = require('web3')
 const web3 = new Web3(ganache.provider());
 
 const mongoose = require('mongoose');
-const keys = require('../config/keys');
+const keys = require('../config/keys.cjs');
 const mongoDB = keys.mongoURI;
 
 mongoose.connect(mongoDB, {useNewUrlParser: true});
@@ -13,14 +13,14 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
-require('../models/serviceusage');
-require('../models/user');
+require('../models/serviceusage.cjs');
+require('../models/user.cjs');
 var ServiceUsage = mongoose.model('service-usage');
 var User = mongoose.model('user')
 
 
 const compiledRoamingDataManagementContract = require('../ethereum/build/RoamingDataManagement.json')
-const roamingDataManagementContract = require("../ethereum/roamingDataManagement");
+const roamingDataManagementContract = require("../ethereum/roamingDataManagement.cjs");
 
 let accounts
 let roamingDataManagement

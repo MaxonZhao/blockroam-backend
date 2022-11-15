@@ -4,9 +4,10 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('blockroam-backend:server');
-var http = require('http');
+import app from '../app.mjs';
+import Debug from 'debug'
+const debug = Debug('blockroam-backend:server');
+import http from 'http';
 
 
 /**

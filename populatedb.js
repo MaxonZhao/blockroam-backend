@@ -1,7 +1,7 @@
-const keys = require('./config/keys');
+const keys = require('./config/keys.cjs');
 
-require('./models/user');
-require('./models/serviceusage');
+require('./models/user.cjs');
+require('./models/serviceusage.cjs');
 
 const mongoose = require('mongoose');
 const mongoDB = keys.mongoURI;

@@ -1,6 +1,5 @@
 const async = require('async');
-const fraudulent = require('../models/fraudulent');
-const { subscribe } = require('../routes');
+const fraudulent = require('../models/fraudulent.cjs');
 
 exports.check_fraudulent = async function(req,res,next) {
             const fraudulentList = new fraudulent({

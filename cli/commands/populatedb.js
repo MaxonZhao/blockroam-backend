@@ -1,4 +1,4 @@
-import keys from '../../config/keys.js';
+import keys from '../../config/keys.cjs';
 import randomMobile from 'random-mobile';
 import { RandomUtils } from '../../utils/util.mjs'
 
@@ -8,8 +8,8 @@ import mongoose from 'mongoose';
 // import DateTime from 'luxon'
 
 
-import '../../models/user.js';
-import '../../models/serviceusage.js';
+import '../../models/user.cjs';
+import '../../models/serviceusage.cjs';
 
 
 

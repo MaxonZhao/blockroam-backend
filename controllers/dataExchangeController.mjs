@@ -1,15 +1,14 @@
-const async = require('async');
-const mongoose = require('mongoose');
-const roamingDataManagementContract = require('../ethereum/roamingDataManagement');
-const getAccount = require('../ethereum/accounts');
-const ganache = require('ganache-cli');
-const Web3 = require('web3')
+import async from 'async';
+import mongoose from 'mongoose';
+import roamingDataManagementContract from '../ethereum/roamingDataManagement.cjs';
+import getAccount from '../ethereum/accounts.cjs';
+import ganache from 'ganache-cli';
+import Web3 from 'web3';
 const web3 = new Web3(ganache.provider());
+// const {FileHandler} = require('../utils/ipfs')
 
-
-require('../models/serviceusage');
-require('../models/user');
-var ServiceUsage = mongoose.model('service-usage');
+import '../models/serviceusage.cjs';
+import '../models/user.cjs';
 var User = mongoose.model('user')
 
 const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
@@ -24,7 +23,7 @@ const operatorIndexMap =
     }
 
 
-exports.registerOperators = async function (req, res, next) {
+const registerOperators = async function (req, res, next) {
 
     const accounts = await getAccount;
     const serviceProviderAddresses = accounts.slice(0, 6);
@@ -88,7 +87,7 @@ exports.registerOperators = async function (req, res, next) {
     })
 }
 
-exports.uploadUserDataSummary = async function (req, res, next) {
+const uploadUserDataSummary = async function (req, res, next) {
 
     const accounts = await getAccount;
     const visitingOperator = req.params.visitingOperator
@@ -128,7 +127,7 @@ exports.uploadUserDataSummary = async function (req, res, next) {
     })
 }
 
-exports.fetchBillingHistory = async function (req, res, next) {
+const fetchBillingHistory = async function (req, res, next) {
     const accounts = await getAccount;
     // console.log(accounts);
     await roamingDataManagementContract.methods
@@ -150,7 +149,7 @@ exports.fetchBillingHistory = async function (req, res, next) {
         });
 }
 
-exports.checkAccountBalance = async function (req, res, next) {
+const checkAccountBalance = async function (req, res, next) {
     const accounts = await getAccount;
     // const operatorName = req.params.operatorName;
     // const operatorAddr = serviceProviders[operatorIndexMap[operatorName]]; 
@@ -178,7 +177,7 @@ exports.checkAccountBalance = async function (req, res, next) {
 }
 
 
-exports.fetchUserDataSummary = async function (req, res, next) {
+const fetchUserDataSummary = async function (req, res, next) {
     const accounts = await getAccount;
 
     const visitingOperatorName = req.body.visitingOperator;
@@ -211,6 +210,20 @@ exports.fetchUserDataSummary = async function (req, res, next) {
 
 }
 
-exports.fetchSubscriptionDataRecords = function (req, res, next) {
+const fetchSubscriptionDataRecords = function (req, res, next) {
     return res.json('fetching subscription data records ...')
 }
+
+export default {
+    registerOperators,
+    uploadUserDataSummary,
+    fetchBillingHistory,
+    checkAccountBalance,
+    fetchUserDataSummary,
+    fetchSubscriptionDataRecords
+}
+
+// exports.uploadFile = function(req, res, next) {
+//     const fh = new FileHandler();
+//     fh.uploadDataRecord(req.body.message);
+// }

@@ -2,10 +2,10 @@ const async = require('async');
 const mongoose = require('mongoose')
 const uuidv5 = require('uuid').v5;
 
-require('../models/serviceusage');
-require('../models/user');
-require('../models/operator')
-const roamingDataManagementContract = require("../ethereum/roamingDataManagement");
+require('../models/serviceusage.cjs');
+require('../models/user.cjs');
+require('../models/operator.cjs')
+const roamingDataManagementContract = require("../ethereum/roamingDataManagement.cjs");
 const ganache = require('ganache-cli');
 const Web3 = require('web3')
 const web3 = new Web3(ganache.provider());
