@@ -1,3 +1,4 @@
+
 const async = require('async');
 const mongoose = require('mongoose');
 const roamingDataManagementContract = require('../ethereum/roamingDataManagement');
@@ -109,8 +110,8 @@ exports.uploadUserDataSummary = async function (req, res, next) {
                 .uploadUserDataSummary(entry.imsi, entry.number,
                     entry.serviceProvider, Math.round(entry.voiceCallUsage),
                     Math.round(entry.internetUsage), entry.smsUsage,
-                    entry.serviceStartTime.getTime(), entry.internetStartTime.getTime(),
-                    entry.voiceCallStartTime.getTime(), entry.smsStartTime.getTime(), new Date().valueOf())
+                    entry.voiceCallDate.getTime(), entry.internetDate.getTime(),
+                    entry.voiceCallDate.getTime(), entry.smsDate.getTime(), new Date().valueOf())
                 .send({
                     from: accounts[operatorIndexMap[visitingOperator]],
                     gas: '1000000'

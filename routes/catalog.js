@@ -24,6 +24,7 @@ router.post('/fetch-user-summary', data_exchange_controller.fetchUserDataSummary
 // authentication
 router.post('/register', user_controller.register);
 router.post('/login', user_controller.login);
+router.get('/logout', user_controller.logout);
 
 //
 router.post('/fraudulent',fraudulent_controller.check_fraudulent)

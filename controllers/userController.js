@@ -77,6 +77,13 @@ exports.login = function (req, res) {
       },{accessType: 'offline', approvalPrompt: 'consent'})(req, res);
     }
 
+    exports.logout = function (req, res) {
+        req.logout(req.user, err => {
+            if(err) return next(err);
+            res.redirect("/");
+          });
+    }
+
 
     exports.register = function (req, res) {
         // console.log(req.body);

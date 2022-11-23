@@ -1,7 +1,7 @@
 import keys from '../../config/keys.js';
 import randomMobile from 'random-mobile';
 import { RandomUtils } from '../../utils/util.mjs'
-
+import axios from 'axios';
 import { v4 } from 'uuid';
 import async from 'async'
 import mongoose from 'mongoose';
@@ -297,15 +297,16 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         async.parallel(fs, cb);
     }
     
-    async function populateRandomDataRecords() {
+     async function populateRandomDataRecords() {
         await async.series([
             populateImsiArray,
             initializeStartDates,
             createServiceUsages,
             createUsers,
         ],
+    
             // Optional callback
-            function (err, results) {
+            async function (err, results) {
                 if (err) {
                     console.log('FATAL ERR: ' + err);
                 }
@@ -320,8 +321,19 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             });
         
     }
+
+    let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
+    const updateRoaming = async () => {
+        let res = await axios.get(url)
+        console.log(res);
+    }
+
+    async function updateRoamingPartners() {
+        await updateRoaming();
+    }
     
     populateRandomDataRecords();
     setInterval(populateRandomDataRecords, timeInterval)
+    setInterval(updateRoamingPartners,10000)
     
 }
