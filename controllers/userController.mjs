@@ -1,25 +1,31 @@
-const async = require('async');
-const mongoose = require('mongoose')
-const uuidv5 = require('uuid').v5;
+import async from 'async';
+import mongoose from 'mongoose'
+// const uuidv5 = require('uuid').v5;
+import * as uid from 'uuid'
+const uuidv5 = uid.v5
 
-require('../models/serviceusage.cjs');
-require('../models/user.cjs');
-require('../models/operator.cjs')
-const roamingDataManagementContract = require("../ethereum/roamingDataManagement.cjs");
-const ganache = require('ganache-cli');
-const Web3 = require('web3')
+
+import '../models/serviceusage.cjs';
+import '../models/user.cjs';
+import '../models/operator.cjs'
+
+import roamingDataManagementContract from '../ethereum/roamingDataManagement.cjs';
+import ganache from 'ganache-cli';
+import Web3 from 'web3'
+import * as IPFS from "ipfs-core";
 const web3 = new Web3(ganache.provider());
 
 
 let ServiceUsage = mongoose.model('service-usage');
 let User = mongoose.model('user');
 let OperatorSchema = mongoose.model('operator');
+let ipfs
 
 const initialBalance = '100'
 
 const USER_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
 
-exports.index = function (req, res) {
+const index = function (req, res) {
     async.parallel({
         user_count: function (callback) {
             User.countDocuments({}, callback);
@@ -33,7 +39,7 @@ exports.index = function (req, res) {
     });
 }
 
-exports.login = function (req, res) {
+const login = function (req, res) {
     const operatorName = req.body.username;
     const password = req.body.password;
 
@@ -59,7 +65,7 @@ exports.login = function (req, res) {
         });
 }
 
-exports.register = function (req, res) {
+const register = async function (req, res) {
     // console.log(req.body);
     const opSecretKey = uuidv5(req.body.username + req.body.password, USER_NAMESPACE)
     // console.log(secretKey);
@@ -70,8 +76,8 @@ exports.register = function (req, res) {
         secretKey: opSecretKey
     };
 
-    OperatorSchema.find({'operatorName': op.operatorName})
-        .exec(function (err, operators) {
+    await OperatorSchema.find({'operatorName': op.operatorName})
+        .exec(async function (err, operators) {
             console.log("-------------- registering --------------")
             console.log(op.operatorName)
             console.log(operators)
@@ -85,12 +91,19 @@ exports.register = function (req, res) {
             }
 
             const operatorInstance = new OperatorSchema(op);
-            operatorInstance.save(async function (err) {
+            await operatorInstance.save(async function (err) {
                 if (err) {
                     console.log(err);
                 } else {
+                    if (ipfs == null)
+                        ipfs = await IPFS.create()
+                    const {cid} = await ipfs.add(op.secretKey);
+                    console.log("-------------- PRINTING CID ------------------")
+                    console.log(cid.toString())
+                    // return res.json(cid.toString());
+
                     await roamingDataManagementContract.methods
-                        .registerRoamingOperator(req.body.address, req.body.username, new Date().valueOf(), opSecretKey)
+                        .registerRoamingOperator(req.body.address, req.body.username, new Date().valueOf(), cid.toString())
                         .send({
                             from: req.body.address,
                             value: web3.utils.toWei(initialBalance, 'wei'),
@@ -114,7 +127,7 @@ exports.register = function (req, res) {
         });
 }
 
-exports.user_list = function (req, res, next) {
+const user_list = function (req, res, next) {
     User.find({}, 'imsi number servicessage')
         .sort('imsi')
         .populate('serviceUsage')
@@ -126,7 +139,7 @@ exports.user_list = function (req, res, next) {
         });
 }
 
-exports.user_detail = function (req, res, next) {
+const user_detail = function (req, res, next) {
     User.findById(req.params.id)
         .populate('serviceUsage')
         .exec(function (err, user) {
@@ -138,7 +151,7 @@ exports.user_detail = function (req, res, next) {
         })
 }
 
-exports.fetch_local_user_list = function (req, res, next) {
+const fetch_local_user_list = function (req, res, next) {
     const sp = req.params.service_provider;
     console.log(sp)
     User.find({serviceProvider: sp})
@@ -150,3 +163,33 @@ exports.fetch_local_user_list = function (req, res, next) {
 
     // return res.status(404).send('Sorry we cannot find any!')
 }
+
+const deleteOperator = async function (req, res) {
+    const operator = req.params.operatorName;
+
+    await OperatorSchema.findOneAndRemove({'operatorName': operator})
+        .exec(async function (err, op) {
+            console.log("-------------- Deleting Account --------------")
+            console.log(operator)
+            if (err) {
+                return res.status(400).json("unable to delete: \n" + err);
+            }
+            if (op == null) {
+                return res.status(403).json("user does not exist");
+            } else {
+                console.log('User removed successfully!');
+                return res.status(200).json("user removed successfully!");
+            }
+        });
+}
+
+const user_controller = {
+    index,
+    login,
+    register,
+    deleteOperator,
+    user_list,
+    user_detail,
+    fetch_local_user_list
+}
+export default user_controller

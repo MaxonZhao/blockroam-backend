@@ -9,7 +9,7 @@ contract RoamingDataManagement {
 
     mapping(address => string) public operatorsAddrToName;
     mapping(string => address) public operatorsNameToAddr;
-    mapping(address => string) public operatorSecretKeys;
+    mapping(address => string) public operatorSecretKeysCID;
 
 
     uint public totalDeposit;
@@ -94,6 +94,9 @@ contract RoamingDataManagement {
         uint256 voiceCallUsage, uint256 internetUsage, uint256 smsUsage, uint256 serviceStartTime,
         uint256 internetStartTime, uint256 voiceCallStartTime, uint256 smsStartTime, uint256 currentTimestamp) public {
 
+        // TODO: for roaming fraud prevention, it does not make sense to stop populating roaming data from the backend system.
+        // TODO: However, we can maintain a data structure, mapping, to flag that user within this smart contract so that we
+        // TODO: do not allow such data to be stored on blockchain.
         address visitingOperator = msg.sender;
         require(bytes(operatorsAddrToName[visitingOperator]).length != 0);
         require(operatorsNameToAddr[serviceProvider] != address(0x0));
@@ -146,8 +149,8 @@ contract RoamingDataManagement {
     function fetchUserDataSummary(string memory visitingOperatorName, string memory secretKey) public view returns(string[] memory, UserDataSummary[] memory) {
         address homeOperatorAddr = msg.sender;
         string[] storage users = userTable[homeOperatorAddr];
-        require(bytes(operatorSecretKeys[homeOperatorAddr]).length != 0);
-        require(keccak256(bytes(operatorSecretKeys[homeOperatorAddr])) == keccak256(bytes(secretKey)));
+//        require(bytes(operatorSecretKeysCID[homeOperatorAddr]).length != 0);
+//        require(keccak256(bytes(operatorSecretKeysCID[homeOperatorAddr])) == keccak256(bytes(secretKey)));
 
 
         UserDataSummary[] memory dataSummaries = new UserDataSummary[](userTable[homeOperatorAddr].length);
@@ -164,8 +167,8 @@ contract RoamingDataManagement {
     }
 
     function uploadSecretKey(address addr, string memory secretKey) public {
-        require(bytes(operatorSecretKeys[addr]).length == 0);
-        operatorSecretKeys[addr] = secretKey;
+        require(bytes(operatorSecretKeysCID[addr]).length == 0);
+        operatorSecretKeysCID[addr] = secretKey;
     }
 
     // Function to transfer Ether from this contract to address from input

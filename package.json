@@ -1,7 +1,6 @@
 {
   "name": "blockroam-backend",
   "version": "0.0.0",
-  "type": "module",
   "private": true,
   "scripts": {
     "dev": "nodemon --exec npm start",
