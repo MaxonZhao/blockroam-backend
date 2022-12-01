@@ -11,6 +11,7 @@ import keys from './config/keys.cjs'
 import multer from 'multer';
 const upload = multer();
 
+
 import indexRouter from './routes/index.mjs';
 import usersRouter from './routes/users.cjs';
 import catalogRouter from './routes/catalog.mjs';
@@ -32,9 +33,9 @@ mongoose.connect(mongoDB, {useNewUrlParser:true});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'URLs to trust of allow');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
   if ('OPTIONS' == req.method) {
   res.sendStatus(200);
   } else {
@@ -47,6 +48,33 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(upload.array());
+
+import passport from "passport";
+import { Strategy as passportLocal } from "passport-local";
+import session from "express-session";
+import bodyParser from "body-parser";
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:4000"],// <-- location of the react app were connecting to
+    credentials: true,
+  })
+);
+
+app.use(
+  session({
+    secret: "secretcode",
+    resave: true,
+    saveUninitialized: false,
+  })
+);
+
+app.use(cookieParser("secretcode"));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

@@ -1,7 +1,7 @@
 import keys from '../../config/keys.cjs';
 import randomMobile from 'random-mobile';
 import { RandomUtils } from '../../utils/util.mjs'
-
+import axios from 'axios';
 import { v4 } from 'uuid';
 import async from 'async'
 import mongoose from 'mongoose';
@@ -320,8 +320,20 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
             });
         
     }
+
+    let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
+    const updateRoaming = async () => {
+        let res = await axios.get(url)
+        console.log(res);
+    }
+
+    async function updateRoamingPartners() {
+        await updateRoaming();
+    }
     
     populateRandomDataRecords();
+    updateRoamingPartners();
     setInterval(populateRandomDataRecords, timeInterval)
+    setInterval(updateRoamingPartners,30000)
     
 }

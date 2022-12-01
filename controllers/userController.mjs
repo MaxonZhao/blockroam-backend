@@ -4,21 +4,20 @@ import mongoose from 'mongoose'
 import * as uid from 'uuid'
 const uuidv5 = uid.v5
 
-
 import '../models/serviceusage.cjs';
 import '../models/user.cjs';
-import '../models/operator.cjs'
+import '../models/operator.cjs';
 
 import roamingDataManagementContract from '../ethereum/roamingDataManagement.cjs';
 import ganache from 'ganache-cli';
 import Web3 from 'web3'
 import * as IPFS from "ipfs-core";
 const web3 = new Web3(ganache.provider());
-
-
+import passport from "passport";
 let ServiceUsage = mongoose.model('service-usage');
 let User = mongoose.model('user');
 let OperatorSchema = mongoose.model('operator');
+import passportConfig from '../config/passportConfig.js'
 let ipfs
 
 const initialBalance = '100'
@@ -42,28 +41,41 @@ const index = function (req, res) {
 const login = function (req, res) {
     const operatorName = req.body.username;
     const password = req.body.password;
-
-    OperatorSchema.find({'operatorName': operatorName})
-        .exec(function (err, operators) {
-
-            if (err) {
-                res.status(400).json("unable to login: \n" + err);
-                return;
-            }
-            if (operators.length == 0) {
+    passportConfig(passport);
+   passport.authenticate("local", (err, operator, info) => {
+        if (err) throw err;
+           if (!operator){
+            console.log(info)
+            if(info.message === '400'){
                 res.status(400).json("unable to login, user does not exist");
-                return
+                return;
+            } else if(info.message === '403') {
+                res.status(403).json("Wrong password!")
+                return;
             } else {
-                const operator = operators[0];
-                if (password === operator.password) {
-                    res.status(200).json("Login Successful!")
-                } else {
-                    res.status(403).json("Wrong password!")
-                }
+                res.status(400).json("unable to login:");
                 return;
             }
-        });
-}
+           }
+          req.login.bind(req)(operator, (err) => {
+            if (err){
+                res.status(400).json("unable to login:");
+                throw(err)
+            };
+            res.status(200).json("Successfully Authenticated");
+            return
+          });
+        
+      },{accessType: 'offline', approvalPrompt: 'consent'})(req, res);
+    }
+
+   const logout = function (req, res) {
+        req.logout(req.user, err => {
+            if(err) return next(err);
+            res.redirect("/");
+          });
+    }
+
 
 const register = async function (req, res) {
     // console.log(req.body);
@@ -183,13 +195,23 @@ const deleteOperator = async function (req, res) {
         });
 }
 
+const check_Authenticated = function(req,res,next) {
+    if (req.isAuthenticated()) {
+        return next()
+      }
+
+      return res.status(500).json("need  to login in first")
+}
+
 const user_controller = {
     index,
     login,
+    logout,
     register,
     deleteOperator,
     user_list,
     user_detail,
-    fetch_local_user_list
+    fetch_local_user_list,
+    check_Authenticated
 }
 export default user_controller
