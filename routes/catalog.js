@@ -23,6 +23,7 @@ router.post('/fetch-user-summary', data_exchange_controller.fetchUserDataSummary
 
 // authentication
 router.post('/register', user_controller.register);
+router.get('/delete-operator/:operatorName', user_controller.deleteOperator);
 router.post('/login', user_controller.login);
 router.get('/logout', user_controller.logout);
 

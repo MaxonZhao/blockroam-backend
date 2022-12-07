@@ -296,8 +296,10 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         }
         async.parallel(fs, cb);
     }
-    
+    let count = 0;
      async function populateRandomDataRecords() {
+        count++;
+        if(count < 14){
         await async.series([
             populateImsiArray,
             initializeStartDates,
@@ -319,7 +321,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
                 // console.log('closing connection ...')
                 // mongoose.connection.close();
             });
-        
+        }
     }
 
     let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
@@ -333,7 +335,8 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     }
     
     populateRandomDataRecords();
+    updateRoamingPartners();
     setInterval(populateRandomDataRecords, timeInterval)
-    setInterval(updateRoamingPartners,10000)
+    setInterval(updateRoamingPartners,30000)
     
 }

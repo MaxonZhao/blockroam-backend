@@ -172,10 +172,29 @@ exports.login = function (req, res) {
             .exec(function (err, user_list) {
                 console.log(user_list);
                 return res.status(200).json({'service provider': sp, 'user list': user_list})
-            })
+            })}
     
-        // return res.status(404).send('Sorry we cannot find any!')
-    }
+        // return res.statu
+        
+        exports.deleteOperator = async function (req, res) {
+            const operator = req.params.operatorName;
+        
+            await OperatorSchema.findOneAndRemove({'operatorName': operator})
+                .exec(async function (err, op) {
+                    console.log("-------------- Deleting Account --------------")
+                    console.log(operator)
+                    if (err) {
+                        return res.status(400).json("unable to delete: \n" + err);
+                    }
+                    if (op == null) {
+                        return res.status(403).json("user does not exist");
+                    } else {
+                        console.log('User removed successfully!');
+                        return res.status(200).json("user removed successfully!");
+                    }
+                });
+        }
+    
 
 
 
