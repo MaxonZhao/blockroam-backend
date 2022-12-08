@@ -322,6 +322,9 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
                 // mongoose.connection.close();
             });
         }
+        if (count >= 14) {
+            console.log("14 day's data has been generated,please wait for uploading for blockchain")
+        }
     }
 
     let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
