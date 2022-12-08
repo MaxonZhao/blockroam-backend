@@ -340,6 +340,6 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     populateRandomDataRecords();
     updateRoamingPartners();
     setInterval(populateRandomDataRecords, timeInterval)
-    setInterval(updateRoamingPartners,30000)
+    setInterval(updateRoamingPartners,20000)
     
 }
