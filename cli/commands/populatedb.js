@@ -299,7 +299,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
     let count = 0;
      async function populateRandomDataRecords() {
         count++;
-        if(count < 14){
+        //if(count < 14){
         await async.series([
             populateImsiArray,
             initializeStartDates,
@@ -321,24 +321,23 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
                 // console.log('closing connection ...')
                 // mongoose.connection.close();
             });
-        }
-        if (count >= 14) {
-            console.log("14 day's data has been generated,please wait for uploading for blockchain")
-        }
+       // }
     }
 
     let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
     const updateRoaming = async () => {
         let res = await axios.get(url)
-        console.log(res);
+       // console.log(res);
+        console.log("Finish updateing");
     }
 
     async function updateRoamingPartners() {
+        console.log("Begin updateing");
+    
         await updateRoaming();
     }
     
     populateRandomDataRecords();
-    updateRoamingPartners();
     setInterval(populateRandomDataRecords, timeInterval)
     setInterval(updateRoamingPartners,20000)
     
