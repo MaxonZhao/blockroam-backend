@@ -344,7 +344,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         console.log("Begin updating Rogers");
         const res = await Promise.all([
             updateRoamingRogersSub(),
-                                   //  updateRoamingPartners()
+           updateRoamingPartners()
                                     ])
      //   const res = await Promise.all([updateRoamingRogersSub(),
                                         // updateRoamingPartners(),
