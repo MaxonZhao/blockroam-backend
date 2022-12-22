@@ -26,7 +26,7 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
 
     const NUMBER_OF_ENTRIES = numberOfUsers;
     const SERVICE_USAGE_ENTRIES = numberOfDataRecords;
-    const serviceProviders = ['Fido', 'Bell', 'AT&T', 'T-Mobile', 'Rogers', 'Cricket']
+    const serviceProviders = ['AT&T', 'Bell', "Fido", 'T-Mobile', 'Rogers', 'Cricket']
     const serviceType = ['SMS', 'Voice Call', 'Internet']
 
     var userEntries = [];
@@ -297,14 +297,18 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
         async.parallel(fs, cb);
     }
     let count = 0;
+    let flag = 0;
+    let flag1 = 1;
+
+
      async function populateRandomDataRecords() {
         count++;
-        //if(count < 14){
         await async.series([
             populateImsiArray,
             initializeStartDates,
             createServiceUsages,
             createUsers,
+            updateRoamingRogers,
         ],
     
             // Optional callback
@@ -324,21 +328,44 @@ export default (numberOfUsers, numberOfDataRecords, timeInterval, year, month, d
        // }
     }
 
-    let url = 'http://localhost:8080/catalog/upload-user-data-summary/Fido'
+
+    let urlat = 'http://localhost:8080/catalog/upload-user-data-summary/AT&T'
+    let urlRogers = 'http://localhost:8080/catalog/upload-user-data-summary/Rogers'
+    let urlBell = 'http://localhost:8080/catalog/upload-user-data-summary/Bell'
     const updateRoaming = async () => {
-        let res = await axios.get(url)
-       // console.log(res);
-        console.log("Finish updateing");
+        let resAt = await axios.get(urlat)
+       // console.log(res);    
     }
+    const updateRoamingRogersSub = async () => {
+        let resRogers = await axios.get(urlRogers)
+        
+    }
+    async function updateRoamingRogers() {
+        console.log("Begin updating Rogers");
+        const res = await Promise.all([updateRoamingRogersSub(),
+                                      updateRoamingPartners()])
+     //   const res = await Promise.all([updateRoamingRogersSub(),
+                                        // updateRoamingPartners(),
+                                        // updateBell()])
+                                      
+                                      
+        console.log("Finish updating");
+}
 
     async function updateRoamingPartners() {
-        console.log("Begin updateing");
-    
+        console.log("Begin updating other");
         await updateRoaming();
-    }
-    
+        console.log("Finish updating");
+}
+
+   //Bell example
+    // async function updateBell(){
+    //     let resRogers = await axios.get(urlBell)
+    // }
+   
+
+
     populateRandomDataRecords();
     setInterval(populateRandomDataRecords, timeInterval)
-    setInterval(updateRoamingPartners,20000)
-    
+    //setInterval(updateRoamingPartners,40000)
 }

@@ -13,15 +13,15 @@ require('../models/user');
 var ServiceUsage = mongoose.model('service-usage');
 var User = mongoose.model('user')
 
-const serviceProviders = ["Rogers", "Fido", "T-Mobile", "Cricket", "Bell", "AT&T"];
+const serviceProviders = ["Rogers", "AT&T", "T-Mobile", "Cricket", "Bell", "Fido"];
 const operatorIndexMap =
     {
         "Rogers": 0,
         "Fido": 1,
-        "T-Mobile": 2,
-        "Cricket": 3,
-        "Bell": 4,
-        "AT&T": 5
+        "AT&T": 2,
+        "Bell": 3,
+        "T-Mobile": 4,
+        "Cricket": 5,
     }
 
 
@@ -182,7 +182,9 @@ exports.checkAccountBalance = async function (req, res, next) {
 exports.fetchUserDataSummary = async function (req, res, next) {
     const accounts = await getAccount;
 
-    const visitingOperatorName = req.body.visitingOperator;
+    let visitingOperatorName = req.body.visitingOperator;
+
+   // visitingOperatorName = "Fido";
     const homeOperatorName = req.body.homeOperator;
     console.log(req.body.visitingOperator)
     console.log(req.body.homeOperator)
