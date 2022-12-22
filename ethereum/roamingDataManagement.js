@@ -3,7 +3,7 @@ const RoamingDataManagement = require('./build/RoamingDataManagement.json');
 
 const instance = new web3.eth.Contract(
     RoamingDataManagement.abi,
-    '0xC3Fa142F493733ad2676445195046E26cd21748e'
+    '0xf5e678Dc0a8f4cE5a824Ba47e7d7cCf553a2C707'
 )
 
 module.exports = instance;
