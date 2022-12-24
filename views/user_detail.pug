@@ -1,0 +1,20 @@
+extends layout
+
+block content
+    h1= 'User Detail for - ' + user.imsi
+
+    ul
+        li #[strong number:] !{user.number}
+        li #[strong service provider:] !{user.serviceProvider}
+        li #[strong voice call usage:] !{user.voiceCallUsageWithUnit}
+        li #[strong sms usage:] !{user.smsUsage}
+        li #[strong internet usage:] !{user.internetUsageWithUnit}
+
+    h2= 'Service Usage Summary'
+    ul
+        each entry in user.serviceUsage
+            li #[strong service:] !{entry.serviceType}
+            li #[strong startTime:] !{entry.start_time_formatted}
+            li #[strong endTime:] !{entry.end_time_formatted}
+
+            br

@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title} system
+
+  h1 Dynamic content
+
+  if error 
+    p Error getting dynamic content.
+  else 
+    p The blockroam backend database has the following record counts:
+  
+    ul 
+      li #[strong Users:] !{data.user_count}
+      li #[strong Service-usage Records:] !{data.service_usage_count} 
